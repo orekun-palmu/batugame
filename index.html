@@ -25,18 +25,19 @@
             background: radial-gradient(circle at 50% -10%, #3a2a45 0%, var(--bg-color) 55%);
             color: #f8f0f5;
             margin: 0;
-            padding: 20px;
+            padding: 15px; /* スマホ向けに少し狭く */
             display: flex;
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
+            box-sizing: border-box;
         }
 
         .container {
             max-width: 900px;
             width: 100%;
             background: var(--container-bg);
-            padding: 28px 22px;
+            padding: 20px 15px; /* スマホ向けに調整 */
             border-radius: 24px;
             border: 1px solid var(--border-color);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), 0 0 24px rgba(255, 143, 171, 0.08);
@@ -45,14 +46,15 @@
         }
 
         h1 {
-            font-size: 24px;
+            font-size: 20px; /* スマホ向けに縮小 */
             text-align: center;
             color: #fff;
             margin-top: 0;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             font-weight: bold;
             letter-spacing: 0.04em;
             text-shadow: 0 0 10px var(--pastel-red-glow), 0 0 18px rgba(201, 168, 255, 0.25);
+            line-height: 1.4;
         }
 
         /* タブメニュー */
@@ -64,15 +66,18 @@
         }
 
         .tab-btn {
+            flex: 1; /* スマホで均等幅に */
             background: var(--tab-inactive);
             color: #b8a8c0;
             border: none;
-            padding: 12px 24px;
-            font-size: 15px;
+            padding: 12px 10px; /* 横幅を削る */
+            font-size: 14px;
             font-weight: bold;
             border-radius: 12px 12px 0 0;
             cursor: pointer;
             transition: all 0.2s;
+            text-align: center;
+            white-space: nowrap;
         }
 
         .tab-btn:hover {
@@ -103,6 +108,7 @@
         @media (max-width: 800px) {
             .main-layout {
                 grid-template-columns: 1fr;
+                gap: 30px;
             }
         }
 
@@ -113,13 +119,18 @@
             align-items: center;
             justify-content: center;
             position: relative;
+            width: 100%;
         }
 
         .canvas-container {
             position: relative;
-            width: 340px;
-            height: 340px;
+            width: 100%;
+            max-width: 340px; /* 最大サイズを維持 */
+            aspect-ratio: 1 / 1; /* 正方形を維持 */
             margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         /* 上部の固定矢印 */
@@ -138,15 +149,18 @@
         }
 
         canvas {
+            width: 100% !important;
+            height: 100% !important;
             border-radius: 50%;
             box-shadow: 0 0 30px rgba(0,0,0,0.5), 0 0 16px rgba(255,143,171,0.18), inset 0 0 0 4px rgba(255,255,255,0.06);
+            box-sizing: border-box;
         }
 
         /* 操作系 */
         .control-panel {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
             width: 100%;
         }
 
@@ -161,7 +175,12 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            font-size: 14px;
+            font-size: 13px; /* スマホ用に若干縮小 */
+            gap: 10px;
+        }
+        
+        .setting-row span {
+            line-height: 1.3;
         }
 
         /* トグルスイッチ */
@@ -170,6 +189,7 @@
             display: inline-block;
             width: 46px;
             height: 24px;
+            flex-shrink: 0;
         }
 
         .switch input { opacity: 0; width: 0; height: 0; }
@@ -202,7 +222,7 @@
         .btn-start {
             width: 100%;
             padding: 15px;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
             background: linear-gradient(135deg, var(--pastel-red), var(--lavender));
             color: #3a1f2a;
@@ -211,6 +231,7 @@
             cursor: pointer;
             box-shadow: 0 4px 16px var(--pastel-red-glow);
             transition: all 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .btn-start:hover:not(:disabled) {
@@ -237,6 +258,12 @@
             max-height: 520px;
         }
 
+        @media (max-width: 800px) {
+            .inputs-panel {
+                max-height: none; /* スマホ時は全体のスクロールに任せてバッティングを防ぐ */
+            }
+        }
+
         .inputs-header {
             display: flex;
             justify-content: space-between;
@@ -256,7 +283,7 @@
         .input-group {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 8px;
             margin-bottom: 12px;
             padding-bottom: 12px;
             border-bottom: 1px dashed #4f3f5a;
@@ -265,32 +292,34 @@
         .input-top-row {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
 
         .input-num {
             font-size: 12px;
             color: #b8a8c0;
-            width: 22px;
+            width: 20px;
             text-align: right;
+            flex-shrink: 0;
         }
 
         .penalty-select, .penalty-input {
             background: #1c1620;
             border: 1px solid #4f3f5a;
             color: #fff;
-            padding: 8px 12px;
+            padding: 8px 8px;
             border-radius: 10px;
-            font-size: 14px;
+            font-size: 13px;
+            min-width: 0; /* flex内の縮小用ジレンマ回避 */
         }
 
         .penalty-select {
-            flex: 1;
+            flex: 1.1;
             cursor: pointer;
         }
 
         .penalty-input {
-            flex: 1.5;
+            flex: 1.4;
         }
 
         .penalty-input:focus, .penalty-select:focus {
@@ -299,11 +328,28 @@
             box-shadow: 0 0 6px var(--pastel-red-glow);
         }
 
+        .btn-delete {
+            background: none;
+            border: 1px solid #5a4a64;
+            color: #c4b4cc;
+            padding: 8px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        .btn-delete:hover {
+            border-color: var(--danger-color);
+            color: var(--danger-color);
+        }
+
         .preset-sub-row {
             display: flex;
-            gap: 8px;
-            margin-left: 30px;
+            gap: 6px;
+            margin-left: 26px;
             align-items: center;
+            flex-wrap: wrap; /* スマホ画面で溢れたら折り返す */
         }
 
         .food-name-input {
@@ -314,21 +360,8 @@
             padding: 6px 10px;
             border-radius: 8px;
             font-size: 13px;
-        }
-
-        .btn-delete {
-            background: none;
-            border: 1px solid #5a4a64;
-            color: #c4b4cc;
-            padding: 6px 10px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        .btn-delete:hover {
-            border-color: var(--danger-color);
-            color: var(--danger-color);
+            flex-grow: 1;
+            max-width: 120px;
         }
 
         .action-buttons {
@@ -338,12 +371,13 @@
 
         .btn-action {
             flex: 1;
-            padding: 10px;
+            padding: 12px;
             font-size: 14px;
             font-weight: bold;
             border-radius: 10px;
             cursor: pointer;
             border: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .btn-add {
@@ -376,7 +410,7 @@
         .stats-layout {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            gap: 15px;
         }
         .stats-layout .stats-box:last-child {
             grid-column: 1 / -1;
@@ -393,7 +427,7 @@
             border: 1px solid rgba(255,255,255,0.06);
             border-radius: 14px;
             padding: 15px;
-            max-height: 400px;
+            max-height: 350px;
             overflow-y: auto;
         }
 
@@ -418,6 +452,7 @@
             justify-content: space-between;
             padding: 6px 0;
             border-bottom: 1px dashed #4f3f5a;
+            gap: 10px;
         }
 
         .log-item {
@@ -447,7 +482,7 @@
         .result-card {
             background: var(--container-bg);
             border: 2px solid var(--pastel-red);
-            padding: 30px;
+            padding: 25px 20px;
             border-radius: 22px;
             text-align: center;
             max-width: 450px;
@@ -455,31 +490,35 @@
             box-shadow: 0 0 36px var(--pastel-red-glow);
             position: relative;
             overflow: hidden;
+            box-sizing: border-box;
         }
         .result-card h2 {
             margin: 0 0 15px 0;
-            font-size: 16px;
+            font-size: 15px;
             color: #c9a8ff;
             letter-spacing: 0.1em;
         }
         .result-text {
-            font-size: 28px;
+            font-size: 24px;
             font-weight: bold;
             color: #fff;
             margin-bottom: 25px;
             word-break: break-all;
             text-shadow: 0 0 10px rgba(255,255,255,0.25);
+            line-height: 1.4;
         }
         .btn-close-result {
             background: linear-gradient(135deg, var(--pastel-red), var(--lavender));
             color: #3a1f2a;
             border: none;
-            padding: 10px 30px;
+            padding: 12px 35px;
             font-weight: bold;
             border-radius: 20px;
             cursor: pointer;
             position: relative;
             z-index: 2;
+            font-size: 14px;
+            -webkit-tap-highlight-color: transparent;
         }
         .btn-close-result:hover { filter: brightness(1.1); }
 
@@ -525,26 +564,10 @@
             overflow-y: auto;
             text-align: center;
             box-shadow: 0 0 24px rgba(255, 138, 122, 0.25);
+            box-sizing: border-box;
         }
         .modal h2 { margin-top: 0; font-size: 18px; color: var(--danger-color); }
-        .reset-select-list {
-            max-height: 160px;
-            overflow-y: auto;
-            margin: 10px 0 20px;
-            text-align: left;
-            background: #1c1620;
-            padding: 10px;
-            border-radius: 10px;
-        }
-        .reset-option {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 0;
-            border-bottom: 1px solid #3d2f47;
-            cursor: pointer;
-            font-size: 14px;
-        }
+        .modal p { font-size: 14px; line-height: 1.5; }
         .btn-modal-confirm {
             background: var(--danger-color);
             color: #3a1f2a;
@@ -553,6 +576,10 @@
             font-weight: bold;
             border-radius: 10px;
             cursor: pointer;
+            font-size: 14px;
+            width: 100%;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
         .btn-modal-confirm:hover { background: #ffb4a2; }
     </style>
@@ -560,11 +587,11 @@
 <body>
 
 <div class="container">
-    <h1>💀 罰ゲームルーレット(リセット機能付き) 💀</h1>
+    <h1>💀 罰ゲームルーレット<br class="smart-break" style="display:none;"><span style="font-size: 0.85em;">(リセット機能付き)</span> 💀</h1>
     
     <div class="tab-menu">
         <button class="tab-btn active" onclick="switchTab('main-tab', this)">メインルーレット</button>
-        <button class="tab-btn" onclick="switchTab('stats-tab', this)">データ・履歴ログ</button>
+        <button class="tab-btn" onclick="switchTab('stats-tab', this)">データ・履歴</button>
     </div>
 
     <div id="main-tab" class="tab-content active">
@@ -579,7 +606,7 @@
                 <div class="control-panel">
                     <div class="setting-box">
                         <div class="setting-row">
-                            <span>🔄 リセット項目を混ぜる（当選確率: 1枠分）</span>
+                            <span>🔄 リセット項目を混ぜる<br><small style="color: #b8a8c0;">（当選確率: 1枠分）</small></span>
                             <label class="switch">
                                 <input type="checkbox" id="resetToggle" checked onchange="saveToggleSetting(); syncRouletteWheel();">
                                 <span class="slider"></span>
@@ -587,7 +614,7 @@
                         </div>
                     </div>
                     <button class="btn-start" id="btnStart" onclick="spinWheel()">ルーレットを回す！</button>
-                    <button class="btn-start" id="btnStart10" onclick="startMultiSpin(10)" style="margin-top:8px; background: linear-gradient(135deg, var(--lavender), var(--pastel-red));">🔥 10連続で回す！</button>
+                    <button class="btn-start" id="btnStart10" onclick="startMultiSpin(10)" style="margin-top:4px; background: linear-gradient(135deg, var(--lavender), var(--pastel-red));">🔥 10連続で回す！</button>
                     <div id="multiSpinStatus" style="display:none; text-align:center; font-size:13px; color:#c9a8ff; margin-top:4px;"></div>
                 </div>
             </div>
@@ -638,13 +665,18 @@
 <div class="modal" id="resetModal">
     <div class="modal-content">
         <h2>🔄 リセット条件発動！</h2>
-        <p>「リセット」が当選しました。累計値をすべて0にリセットします。</p>
+        <p>「リセット」が当選しました。<br>累計値をすべて0にリセットします。</p>
         <button class="btn-modal-confirm" onclick="executeReset()">累計値をリセットして閉じる</button>
     </div>
 </div>
 
 <script>
-// itemsListの構造変更: { id, mode: 'custom'|'preset', presetType: 'ご自愛'など, value: 'カスタム文字列' or '1時間'など, foodName: '〇〇' }
+// CSSの微調整用（スマホ判定対応の改行制御など）
+if(window.innerWidth <= 480) {
+    const br = document.querySelector('.smart-break');
+    if(br) br.style.display = 'block';
+}
+
 let itemsList = []; 
 let stats = {};
 let logs = [];
@@ -693,7 +725,6 @@ function addField() {
     if (itemsList.length >= 50) return;
 
     const id = Date.now() + Math.random();
-    // デフォルトは自由入力(custom)
     itemsList.push({ 
         id: id, 
         mode: 'custom', 
@@ -737,7 +768,6 @@ function renderFields() {
         const group = document.createElement('div');
         group.className = 'input-group';
 
-        // 上段（モード選択 ＋ メイン入力欄 ＋ 削除ボタン）
         const topRow = document.createElement('div');
         topRow.className = 'input-top-row';
 
@@ -746,7 +776,6 @@ function renderFields() {
         num.innerText = index + 1;
         topRow.appendChild(num);
 
-        // モード＆プリセット大分類セレクト
         const modeSelect = document.createElement('select');
         modeSelect.className = 'penalty-select';
         
@@ -772,7 +801,6 @@ function renderFields() {
             } else {
                 item.mode = 'preset';
                 item.presetType = val;
-                // 初期値を設定
                 item.value = (val === '〇〇を食べる') ? COUNT_PRESETS[0] : TIME_PRESETS[0];
             }
             renderFields();
@@ -781,7 +809,6 @@ function renderFields() {
         };
         topRow.appendChild(modeSelect);
 
-        // メイン入力部分（自由入力テキスト or プリセット値セレクト）
         if (item.mode === 'custom') {
             const input = document.createElement('input');
             input.type = 'text';
@@ -795,7 +822,6 @@ function renderFields() {
             };
             topRow.appendChild(input);
         } else {
-            // プリセット時の値セレクト
             const valueSelect = document.createElement('select');
             valueSelect.className = 'penalty-input';
             const currentSubPresets = (item.presetType === '〇〇を食べる') ? COUNT_PRESETS : TIME_PRESETS;
@@ -824,7 +850,6 @@ function renderFields() {
 
         group.appendChild(topRow);
 
-        // 下段（「〇〇を食べる」が選ばれた時用の、〇〇書き換えスペース）
         if (item.mode === 'preset' && item.presetType === '〇〇を食べる') {
             const subRow = document.createElement('div');
             subRow.className = 'preset-sub-row';
@@ -832,7 +857,7 @@ function renderFields() {
             const labelText = document.createElement('span');
             labelText.style.fontSize = '12px';
             labelText.style.color = '#b8a8c0';
-            labelText.innerText = '何を食べる？ ➔ ';
+            labelText.innerText = '何を選ぶ？ ➔ ';
             subRow.appendChild(labelText);
 
             const foodInput = document.createElement('input');
@@ -850,7 +875,7 @@ function renderFields() {
             const tailText = document.createElement('span');
             tailText.style.fontSize = '12px';
             tailText.style.color = '#b8a8c0';
-            tailText.innerText = ' を食べることになります';
+            tailText.innerText = 'を食べる';
             subRow.appendChild(tailText);
 
             group.appendChild(subRow);
@@ -863,7 +888,6 @@ function renderFields() {
     document.getElementById('btnAddField').disabled = itemsList.length >= 50;
 }
 
-// すべてクリア
 function clearAllFields() {
     if(confirm('すべての記入欄を削除してもよろしいですか？')) {
         itemsList = [];
@@ -873,7 +897,6 @@ function clearAllFields() {
     }
 }
 
-// ルーレットのデータプール同期とCanvas描画
 function syncRouletteWheel() {
     currentPool = [];
     
@@ -898,7 +921,6 @@ function syncRouletteWheel() {
     drawWheel(currentAngle);
 }
 
-// Canvasにルーレット盤を描画
 function drawWheel(angle) {
     const numSegments = currentPool.length;
     const arc = (2 * Math.PI) / numSegments;
@@ -961,7 +983,6 @@ function varColor(varName) {
     return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
 }
 
-// 物理回転シミュレーション
 let multiSpinRemaining = 0;
 let multiSpinTotal = 0;
 let resetPending = false;
@@ -1051,7 +1072,7 @@ function spawnConfetti() {
     card.querySelectorAll('.confetti-piece').forEach(el => el.remove());
 
     const confettiColors = ['#ff8fab', '#c9a8ff', '#fff4e0', '#ffb4a2', '#a8e6cf'];
-    const pieceCount = 28;
+    const pieceCount = 20;
 
     for (let i = 0; i < pieceCount; i++) {
         const piece = document.createElement('div');
@@ -1078,7 +1099,6 @@ function parseAmount(text) {
         .replace(/[ｈＨ]/g, 'h')
         .replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
     
-    // 集計パース用に「を食べる」などの補助ワードを一時的に消して数値を抽出
     const cleanText = normalized.replace('を食べる', '');
     const match = cleanText.match(/(\d+(?:\.\d+)?)\s*(時間|日|分|h|min|m|回|個|点|本|枚|杯|分間)/);
     if (!match) return null;
@@ -1086,7 +1106,6 @@ function parseAmount(text) {
     const unit = match[2];
     const isTime = Object.prototype.hasOwnProperty.call(TIME_UNIT_TO_HOURS, unit);
     
-    // 残った部分をラベル化（例: "プリンを3個食べる" -> "プリン"）
     let label = normalized.replace(match[0], '').replace('を食べる', '').trim();
     if (!label) label = normalized;
     return { num, unit, isTime, label };
