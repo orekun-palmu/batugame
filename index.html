@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>罰ゲームルーレット(リセット機能付き)</title>
+    <style>
+        :root {
+            /* キュート・パステル パレット */
+            --pastel-red: #ff8fab;
+            --pastel-red-glow: rgba(255, 143, 171, 0.45);
+            --pastel-red-dark: #e2738f;
+            --lavender: #c9a8ff;
+            --cream: #fff4e0;
+            --peach: #ffb4a2;
+            --bg-color: #1c1620;
+            --container-bg: #2a2032;
+            --border-color: rgba(255, 143, 171, 0.22);
+            --danger-color: #ff8a7a;
+            --tab-inactive: #352a3d;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Maru Gothic ProN', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background: radial-gradient(circle at 50% -10%, #3a2a45 0%, var(--bg-color) 55%);
+            color: #f8f0f5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: var(--container-bg);
+            padding: 28px 22px;
+            border-radius: 24px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), 0 0 24px rgba(255, 143, 171, 0.08);
+            box-sizing: border-box;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 24px;
+            text-align: center;
+            color: #fff;
+            margin-top: 0;
+            margin-bottom: 25px;
+            font-weight: bold;
+            letter-spacing: 0.04em;
+            text-shadow: 0 0 10px var(--pastel-red-glow), 0 0 18px rgba(201, 168, 255, 0.25);
+        }
+
+        /* タブメニュー */
+        .tab-menu {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #3d2f47;
+        }
+
+        .tab-btn {
+            background: var(--tab-inactive);
+            color: #b8a8c0;
+            border: none;
+            padding: 12px 24px;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 12px 12px 0 0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn:hover {
+            color: #fff;
+        }
+
+        .tab-btn.active {
+            background: var(--pastel-red);
+            color: #3a1f2a;
+            box-shadow: 0 0 12px var(--pastel-red-glow);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* メインレイアウト */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        @media (max-width: 800px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ルーレット盤エリア */
+        .roulette-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .canvas-container {
+            position: relative;
+            width: 340px;
+            height: 340px;
+            margin-bottom: 20px;
+        }
+
+        /* 上部の固定矢印 */
+        .roulette-arrow {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 25px solid #fff;
+            z-index: 10;
+            filter: drop-shadow(0 2px 8px rgba(255,143,171,0.5));
+        }
+
+        canvas {
+            border-radius: 50%;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5), 0 0 16px rgba(255,143,171,0.18), inset 0 0 0 4px rgba(255,255,255,0.06);
+        }
+
+        /* 操作系 */
+        .control-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .setting-box {
+            background: #35293f;
+            padding: 12px 15px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .setting-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+
+        /* トグルスイッチ */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 46px;
+            height: 24px;
+        }
+
+        .switch input { opacity: 0; width: 0; height: 0; }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #46384f;
+            transition: .2s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px; width: 16px;
+            left: 4px; bottom: 4px;
+            background-color: #fff4e0;
+            transition: .2s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider { background: linear-gradient(135deg, var(--pastel-red), var(--lavender)); }
+        input:checked + .slider:before {
+            transform: translateX(22px);
+            background-color: #3a1f2a;
+        }
+
+        .btn-start {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            background: linear-gradient(135deg, var(--pastel-red), var(--lavender));
+            color: #3a1f2a;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 16px var(--pastel-red-glow);
+            transition: all 0.2s ease;
+        }
+
+        .btn-start:hover:not(:disabled) {
+            filter: brightness(1.1);
+            box-shadow: 0 6px 22px rgba(201,168,255,0.45);
+            transform: translateY(-1px);
+        }
+
+        .btn-start:disabled {
+            background: #46384f !important;
+            color: #877a8e !important;
+            cursor: not-allowed;
+            box-shadow: none !important;
+        }
+
+        /* 追加式の記入欄 */
+        .inputs-panel {
+            background: #35293f;
+            padding: 15px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.06);
+            display: flex;
+            flex-direction: column;
+            max-height: 480px;
+        }
+
+        .inputs-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        .input-scroll-area {
+            overflow-y: auto;
+            flex: 1;
+            padding-right: 4px;
+            margin-bottom: 12px;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .input-num {
+            font-size: 12px;
+            color: #b8a8c0;
+            width: 22px;
+            text-align: right;
+        }
+
+        .penalty-input {
+            flex: 1;
+            background: #1c1620;
+            border: 1px solid #4f3f5a;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        .penalty-input:focus {
+            border-color: var(--pastel-red);
+            outline: none;
+            box-shadow: 0 0 6px var(--pastel-red-glow);
+        }
+
+        .btn-delete {
+            background: none;
+            border: 1px solid #5a4a64;
+            color: #c4b4cc;
+            padding: 6px 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-delete:hover {
+            border-color: var(--danger-color);
+            color: var(--danger-color);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-action {
+            flex: 1;
+            padding: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-add {
+            background-color: #3a2c44;
+            color: var(--pastel-red);
+            border: 1px solid var(--pastel-red);
+        }
+        .btn-add:hover:not(:disabled) {
+            background: linear-gradient(135deg, var(--pastel-red), var(--lavender));
+            color: #3a1f2a;
+        }
+        .btn-add:disabled {
+            border-color: #4f3f5a;
+            color: #877a8e;
+            cursor: not-allowed;
+        }
+
+        .btn-clear {
+            background-color: transparent;
+            color: var(--danger-color);
+            border: 1px solid var(--danger-color);
+            border-radius: 10px;
+        }
+        .btn-clear:hover {
+            background-color: var(--danger-color);
+            color: #3a1f2a;
+        }
+
+        /* 統計・ログタブレイアウト */
+        .stats-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .stats-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .stats-box {
+            background: #35293f;
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 14px;
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .stats-box h3 {
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-size: 15px;
+            border-bottom: 1px solid #4f3f5a;
+            padding-bottom: 6px;
+            color: #fff;
+        }
+
+        .stats-list, .log-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            font-size: 13px;
+        }
+
+        .stats-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px dashed #4f3f5a;
+        }
+
+        .log-item {
+            padding: 6px 0;
+            color: #d8c8e0;
+            border-bottom: 1px dashed #4f3f5a;
+        }
+
+        /* ポップアップ表示用オーバーレイ (結果表示用) */
+        .result-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            visibility: hidden;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+        .result-overlay.active {
+            visibility: visible;
+            opacity: 1;
+        }
+        .result-card {
+            background: var(--container-bg);
+            border: 2px solid var(--pastel-red);
+            padding: 30px;
+            border-radius: 22px;
+            text-align: center;
+            max-width: 450px;
+            width: 85%;
+            box-shadow: 0 0 36px var(--pastel-red-glow);
+            position: relative;
+            overflow: hidden;
+        }
+        .result-card h2 {
+            margin: 0 0 15px 0;
+            font-size: 16px;
+            color: #c9a8ff;
+            letter-spacing: 0.1em;
+        }
+        .result-text {
+            font-size: 28px;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 25px;
+            word-break: break-all;
+            text-shadow: 0 0 10px rgba(255,255,255,0.25);
+        }
+        .btn-close-result {
+            background: linear-gradient(135deg, var(--pastel-red), var(--lavender));
+            color: #3a1f2a;
+            border: none;
+            padding: 10px 30px;
+            font-weight: bold;
+            border-radius: 20px;
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+        }
+        .btn-close-result:hover { filter: brightness(1.1); }
+
+        /* 結果ポップアップ用の紙吹雪パーティクル */
+        .confetti-piece {
+            position: absolute;
+            top: -10%;
+            border-radius: 2px;
+            opacity: 0.9;
+            animation: confetti-fall linear forwards;
+            pointer-events: none;
+            z-index: 1;
+        }
+        @keyframes confetti-fall {
+            to {
+                transform: translateY(420px) rotate(540deg);
+                opacity: 0;
+            }
+        }
+
+        /* カスタムモーダル（リセット選択用） */
+        .modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            visibility: hidden;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+        .modal.active { visibility: visible; opacity: 1; }
+        .modal-content {
+            background: var(--container-bg);
+            border: 1px solid var(--danger-color);
+            padding: 25px;
+            border-radius: 18px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 0 24px rgba(255, 138, 122, 0.25);
+        }
+        .modal h2 { margin-top: 0; font-size: 18px; color: var(--danger-color); }
+        .reset-select-list {
+            max-height: 220px;
+            overflow-y: auto;
+            margin: 20px 0;
+            text-align: left;
+            background: #1c1620;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        .reset-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #3d2f47;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-modal-confirm {
+            background: var(--danger-color);
+            color: #3a1f2a;
+            border: none;
+            padding: 12px 28px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        .btn-modal-confirm:hover { background: #ffb4a2; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>💀 罰ゲームルーレット(リセット機能付き) 💀</h1>
+    
+    <div class="tab-menu">
+        <button class="tab-btn active" onclick="switchTab('main-tab', this)">メインルーレット</button>
+        <button class="tab-btn" onclick="switchTab('stats-tab', this)">データ・履歴ログ</button>
+    </div>
+
+    <div id="main-tab" class="tab-content active">
+        <div class="main-layout">
+            
+            <div class="roulette-wrapper">
+                <div class="canvas-container">
+                    <div class="roulette-arrow"></div>
+                    <canvas id="rouletteCanvas" width="340" height="340"></canvas>
+                </div>
+                
+                <div class="control-panel">
+                    <div class="setting-box">
+                        <div class="setting-row">
+                            <span>🔄 リセット項目を混ぜる（当選確率: 1枠分）</span>
+                            <label class="switch">
+                                <input type="checkbox" id="resetToggle" checked onchange="saveToggleSetting(); syncRouletteWheel();">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <button class="btn-start" id="btnStart" onclick="spinWheel()">ルーレットを回す！</button>
+                </div>
+            </div>
+
+            <div class="inputs-panel">
+                <div class="inputs-header">
+                    <span>📝 項目リスト (<span id="currentCount">0</span>/50)</span>
+                </div>
+                
+                <div class="input-scroll-area" id="inputContainer">
+                    </div>
+
+                <div class="action-buttons">
+                    <button class="btn-action btn-add" id="btnAddField" onclick="addField('')">＋ 項目を追加</button>
+                    <button class="btn-action btn-clear" onclick="clearAllFields()">すべてクリア</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="stats-tab" class="tab-content">
+        <div class="stats-layout">
+            <div class="stats-box">
+                <h3>📊 累計当選数</h3>
+                <div id="statsList" class="stats-list">まだ当選データがありません</div>
+            </div>
+            <div class="stats-box">
+                <h3>📜 履歴ログ</h3>
+                <div id="logList" class="log-list">履歴はありません</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="result-overlay" id="resultOverlay">
+    <div class="result-card">
+        <h2>抽選結果</h2>
+        <div class="result-text" id="resultText">---</div>
+        <button class="btn-close-result" onclick="closeResultPopup()">閉じる</button>
+    </div>
+</div>
+
+<div class="modal" id="resetModal">
+    <div class="modal-content">
+        <h2>🔄 リセット条件発動！</h2>
+        <p>「リセット」が当選しました。消去したい項目を選択してください（複数選択可）。</p>
+        <div class="reset-select-list" id="resetSelectList"></div>
+        <button class="btn-modal-confirm" onclick="executeReset()">選択した項目を消去して閉じる</button>
+    </div>
+</div>
+
+<script>
+let itemsList = []; // { id: uniqueTimestamp, value: string }
+let stats = {};
+let logs = [];
+
+// ルーレット制御用変数
+const canvas = document.getElementById('rouletteCanvas');
+const ctx = canvas.getContext('2d');
+let currentAngle = 0; 
+let isSpinning = false;
+let currentPool = []; // 現在の描画・抽選用プール
+
+// パステル系のグラデーション用シードカラー
+const colors = ['#4a3a56', '#5a3f5e', '#3f3a52', '#4f3a4a', '#3a3a52', '#523f4f'];
+
+window.onload = function() {
+    loadSavedData();
+    if(itemsList.length === 0) {
+        // 初期配置として空欄を3つ自動設置
+        addField('');
+        addField('');
+        addField('');
+    }
+    syncRouletteWheel();
+};
+
+// タブ切り替え
+function switchTab(tabId, btn) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    
+    document.getElementById(tabId).classList.add('active');
+    btn.classList.add('active');
+
+    if(tabId === 'main-tab') {
+        syncRouletteWheel();
+    }
+}
+
+// 項目を追加 (最大50個)
+function addField(initialValue = '') {
+    if (itemsList.length >= 50) return;
+
+    const id = Date.now() + Math.random();
+    itemsList.push({ id: id, value: initialValue });
+
+    renderFields();
+    saveItems();
+    syncRouletteWheel();
+}
+
+// 項目を削除
+function deleteField(id) {
+    itemsList = itemsList.filter(item => item.id !== id);
+    renderFields();
+    saveItems();
+    syncRouletteWheel();
+}
+
+// 記入欄のレンダリング
+function renderFields() {
+    const container = document.getElementById('inputContainer');
+    container.innerHTML = '';
+
+    itemsList.forEach((item, index) => {
+        const group = document.createElement('div');
+        group.className = 'input-group';
+
+        const num = document.createElement('span');
+        num.className = 'input-num';
+        num.innerText = index + 1;
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'penalty-input';
+        input.value = item.value;
+        input.placeholder = '空欄（はずれ）';
+        input.oninput = function(e) {
+            item.value = e.target.value;
+            saveItems();
+            syncRouletteWheel();
+        };
+
+        const btnDel = document.createElement('button');
+        btnDel.className = 'btn-delete';
+        btnDel.innerText = '×';
+        btnDel.onclick = function() { deleteField(item.id); };
+
+        group.appendChild(num);
+        group.appendChild(input);
+        group.appendChild(btnDel);
+        container.appendChild(group);
+    });
+
+    document.getElementById('currentCount').innerText = itemsList.length;
+    document.getElementById('btnAddField').disabled = itemsList.length >= 50;
+}
+
+// すべてクリア
+function clearAllFields() {
+    if(confirm('すべての記入欄を削除してもよろしいですか？')) {
+        itemsList = [];
+        renderFields();
+        saveItems();
+        syncRouletteWheel();
+    }
+}
+
+// ルーレットのデータプール同期とCanvas描画
+function syncRouletteWheel() {
+    currentPool = [];
+    
+    itemsList.forEach((item) => {
+        const val = item.value.trim();
+        if (val !== '') {
+            currentPool.push({ type: 'penalty', name: val, originId: item.id });
+        } else {
+            currentPool.push({ type: 'miss', name: '❌ はずれ' });
+        }
+    });
+
+    if (currentPool.length === 0) {
+        currentPool.push({ type: 'miss', name: '❌ はずれ' });
+    }
+
+    const isResetAvailable = document.getElementById('resetToggle').checked;
+    if (isResetAvailable) {
+        currentPool.push({ type: 'reset', name: '🔄 リセット発動！' });
+    }
+
+    drawWheel(currentAngle);
+}
+
+// Canvasにルーレット盤を描画
+function drawWheel(angle) {
+    const numSegments = currentPool.length;
+    const arc = (2 * Math.PI) / numSegments;
+    const radius = canvas.width / 2;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (let i = 0; i < numSegments; i++) {
+        const segmentAngle = angle + (i * arc);
+        
+        ctx.beginPath();
+        if (currentPool[i].type === 'reset') {
+            ctx.fillStyle = '#ffb4a2'; // リセットは目立つピーチ
+        } else if (currentPool[i].type === 'miss') {
+            ctx.fillStyle = '#3a2c44'; // はずれ
+        } else {
+            ctx.fillStyle = colors[i % colors.length];
+        }
+        
+        ctx.moveTo(radius, radius);
+        ctx.arc(radius, radius, radius - 5, segmentAngle, segmentAngle + arc);
+        ctx.lineTo(radius, radius);
+        ctx.fill();
+        
+        // セグメント間の境界線
+        ctx.strokeStyle = 'rgba(255, 143, 171, 0.18)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // 文字の描画
+        ctx.save();
+        if (currentPool[i].type === 'reset') {
+            ctx.fillStyle = '#3a1f2a';
+        } else if (currentPool[i].type === 'miss') {
+            ctx.fillStyle = '#8a7a96';
+        } else {
+            ctx.fillStyle = '#ffe3ea';
+        }
+        
+        ctx.translate(radius, radius);
+        ctx.rotate(segmentAngle + arc / 2);
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'right';
+        
+        let text = currentPool[i].name;
+        if(text.length > 10) text = text.substring(0, 9) + '...';
+        
+        ctx.fillText(text, radius - 20, 5);
+        ctx.restore();
+    }
+
+    // センターサークル（中心の軸パーツ）
+    ctx.beginPath();
+    ctx.arc(radius, radius, 15, 0, 2 * Math.PI);
+    ctx.fillStyle = '#fff4e0';
+    ctx.strokeStyle = varColor('--pastel-red');
+    ctx.lineWidth = 3;
+    ctx.fill();
+    ctx.stroke();
+}
+
+function varColor(varName) {
+    return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+}
+
+// 物理回転シミュレーション
+function spinWheel() {
+    if (isSpinning) return;
+
+    isSpinning = true;
+    document.getElementById('btnStart').disabled = true;
+
+    const numSegments = currentPool.length;
+    const targetIndex = Math.floor(Math.random() * numSegments);
+    const arc = (2 * Math.PI) / numSegments;
+    
+    // 真上（-Math.PI / 2）を判定基準にするための角度計算
+    const targetAngle = -Math.PI / 2 - (targetIndex * arc) - (arc / 2);
+    const finalAngle = targetAngle - (Math.PI * 2 * 6); // 最低6回転させて減速
+    
+    let startTimestamp = null;
+    const duration = 4000; // 4秒回転
+
+    function animate(timestamp) {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const elapsed = timestamp - startTimestamp;
+        const progress = Math.min(elapsed / duration, 1);
+
+        // クセになる滑らかな減速を表現するイージング (OutCubic)
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        
+        currentAngle = easeOut * finalAngle;
+        drawWheel(currentAngle);
+
+        if (progress < 1) {
+            requestAnimationFrame(animate);
+        } else {
+            isSpinning = false;
+            document.getElementById('btnStart').disabled = false;
+            
+            const result = currentPool[targetIndex];
+            showResultPopup(result);
+            processResult(result);
+        }
+    }
+
+    requestAnimationFrame(animate);
+}
+
+// 結果ポップアップ
+function showResultPopup(result) {
+    const overlay = document.getElementById('resultOverlay');
+    const txt = document.getElementById('resultText');
+    txt.innerText = result.name;
+    overlay.classList.add('active');
+    spawnConfetti();
+}
+
+// きらきら紙吹雪エフェクト
+function spawnConfetti() {
+    const card = document.querySelector('.result-card');
+    // 前回分をクリア
+    card.querySelectorAll('.confetti-piece').forEach(el => el.remove());
+
+    const confettiColors = ['#ff8fab', '#c9a8ff', '#fff4e0', '#ffb4a2', '#a8e6cf'];
+    const pieceCount = 28;
+
+    for (let i = 0; i < pieceCount; i++) {
+        const piece = document.createElement('div');
+        piece.className = 'confetti-piece';
+        const size = 6 + Math.random() * 6;
+        piece.style.width = `${size}px`;
+        piece.style.height = `${size * 0.4}px`;
+        piece.style.left = `${Math.random() * 100}%`;
+        piece.style.background = confettiColors[Math.floor(Math.random() * confettiColors.length)];
+        piece.style.animationDuration = `${1.4 + Math.random() * 1.2}s`;
+        piece.style.animationDelay = `${Math.random() * 0.3}s`;
+        card.appendChild(piece);
+    }
+}
+
+function closeResultPopup() {
+    document.getElementById('resultOverlay').classList.remove('active');
+}
+
+// 結果のバックエンドデータ（ログ、統計）処理
+function processResult(result) {
+    stats[result.name] = (stats[result.name] || 0) + 1;
+    localStorage.setItem('canvasRouletteStats_v2', JSON.stringify(stats));
+
+    const now = new Date();
+    const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+    logs.unshift(`[${timeStr}] ${result.name}`);
+    if (logs.length > 100) logs.pop();
+    localStorage.setItem('canvasRouletteLogs_v2', JSON.stringify(logs));
+
+    updateStatsDisplay();
+    updateLogDisplay();
+
+    if (result.type === 'reset') {
+        setTimeout(() => {
+            openResetModal();
+        }, 600);
+    }
+}
+
+// リセット項目選択用モーダル
+function openResetModal() {
+    const modal = document.getElementById('resetModal');
+    const listContainer = document.getElementById('resetSelectList');
+    listContainer.innerHTML = '';
+
+    let hasActiveItems = false;
+
+    itemsList.forEach((item, index) => {
+        const val = item.value.trim();
+        if (val !== '') {
+            hasActiveItems = true;
+            const label = document.createElement('label');
+            label.className = 'reset-option';
+            label.innerHTML = `<input type="checkbox" name="resetItem" value="${item.id}"> 項目 ${index + 1}: ${val}`;
+            listContainer.appendChild(label);
+        }
+    });
+
+    if (!hasActiveItems) {
+        listContainer.innerHTML = '<p style="color:#8c787a; text-align:center; padding: 10px;">現在リセット（空欄化）できる記入済みの項目がありません。</p>';
+    }
+
+    modal.classList.add('active');
+}
+
+function executeReset() {
+    const checkboxes = document.getElementsByName('resetItem');
+    let idsToRemove = [];
+
+    checkboxes.forEach(cb => {
+        if (cb.checked) {
+            idsToRemove.push(parseFloat(cb.value));
+        }
+    });
+
+    if (idsToRemove.length > 0) {
+        itemsList.forEach(item => {
+            if(idsToRemove.includes(item.id)) {
+                item.value = ''; // 空欄（はずれ）にする
+            }
+        });
+        renderFields();
+        saveItems();
+        syncRouletteWheel();
+        alert(`${idsToRemove.length} 個の項目をリセットして空欄（はずれ枠）に変更しました。`);
+    }
+
+    document.getElementById('resetModal').classList.remove('active');
+}
+
+// データ保存・読み込み
+function saveItems() {
+    localStorage.setItem('rouletteItemsList_v2', JSON.stringify(itemsList));
+}
+
+function saveToggleSetting() {
+    const toggle = document.getElementById('resetToggle').checked;
+    localStorage.setItem('canvasResetToggle_v2', toggle);
+}
+
+function loadSavedData() {
+    const savedItems = localStorage.getItem('rouletteItemsList_v2');
+    if (savedItems) {
+        itemsList = JSON.parse(savedItems);
+        renderFields();
+    }
+
+    const savedToggle = localStorage.getItem('canvasResetToggle_v2');
+    if (savedToggle !== null) {
+        document.getElementById('resetToggle').checked = savedToggle === 'true';
+    }
+
+    const savedStats = localStorage.getItem('canvasRouletteStats_v2');
+    if (savedStats) stats = JSON.parse(savedStats);
+    
+    const savedLogs = localStorage.getItem('canvasRouletteLogs_v2');
+    if (savedLogs) logs = JSON.parse(savedLogs);
+
+    updateStatsDisplay();
+    updateLogDisplay();
+}
+
+function updateStatsDisplay() {
+    const container = document.getElementById('statsList');
+    if (Object.keys(stats).length === 0) {
+        container.innerText = 'まだ当選データがありません';
+        return;
+    }
+    container.innerHTML = '';
+    for (let key in stats) {
+        const item = document.createElement('div');
+        item.className = 'stats-item';
+        item.innerHTML = `<span>${key}</span><span>${stats[key]} 回</span>`;
+        container.appendChild(item);
+    }
+}
+
+function updateLogDisplay() {
+    const container = document.getElementById('logList');
+    if (logs.length === 0) {
+        container.innerText = '履歴はありません';
+        return;
+    }
+    container.innerHTML = '';
+    logs.forEach(log => {
+        const item = document.createElement('div');
+        item.className = 'log-item';
+        item.innerText = log;
+        container.appendChild(item);
+    });
+}
+</script>
+
+</body>
+</html>
