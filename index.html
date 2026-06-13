@@ -20,28 +20,30 @@
             --tab-inactive: #352a3d;
         }
 
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Helvetica Neue', Arial, 'Hiragino Maru Gothic ProN', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
             background: radial-gradient(circle at 50% -10%, #3a2a45 0%, var(--bg-color) 55%);
             color: #f8f0f5;
             margin: 0;
-            padding: 15px; /* スマホ向けに少し狭く */
+            padding: 12px; /* スマホ用に外側余白をタイトに */
             display: flex;
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
-            box-sizing: border-box;
         }
 
         .container {
             max-width: 900px;
             width: 100%;
             background: var(--container-bg);
-            padding: 20px 15px; /* スマホ向けに調整 */
+            padding: 20px 15px; /* スマホ用にパディングを最適化 */
             border-radius: 24px;
             border: 1px solid var(--border-color);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), 0 0 24px rgba(255, 143, 171, 0.08);
-            box-sizing: border-box;
             margin-bottom: 20px;
         }
 
@@ -54,23 +56,23 @@
             font-weight: bold;
             letter-spacing: 0.04em;
             text-shadow: 0 0 10px var(--pastel-red-glow), 0 0 18px rgba(201, 168, 255, 0.25);
-            line-height: 1.4;
+            line-height: 1.3;
         }
 
         /* タブメニュー */
         .tab-menu {
             display: flex;
-            gap: 5px;
+            gap: 4px;
             margin-bottom: 20px;
             border-bottom: 2px solid #3d2f47;
         }
 
         .tab-btn {
-            flex: 1; /* スマホで均等幅に */
+            flex: 1; /* スマホで均等に幅を分ける */
             background: var(--tab-inactive);
             color: #b8a8c0;
             border: none;
-            padding: 12px 10px; /* 横幅を削る */
+            padding: 12px 8px; /* 左右の余白を減らして文字落ちを防ぐ */
             font-size: 14px;
             font-weight: bold;
             border-radius: 12px 12px 0 0;
@@ -78,6 +80,7 @@
             transition: all 0.2s;
             text-align: center;
             white-space: nowrap;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .tab-btn:hover {
@@ -108,7 +111,7 @@
         @media (max-width: 800px) {
             .main-layout {
                 grid-template-columns: 1fr;
-                gap: 30px;
+                gap: 20px;
             }
         }
 
@@ -125,12 +128,9 @@
         .canvas-container {
             position: relative;
             width: 100%;
-            max-width: 340px; /* 最大サイズを維持 */
-            aspect-ratio: 1 / 1; /* 正方形を維持 */
+            max-width: 320px; /* スマホに合わせたサイズに微調整 */
+            aspect-ratio: 1 / 1;
             margin-bottom: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
         }
 
         /* 上部の固定矢印 */
@@ -153,7 +153,6 @@
             height: 100% !important;
             border-radius: 50%;
             box-shadow: 0 0 30px rgba(0,0,0,0.5), 0 0 16px rgba(255,143,171,0.18), inset 0 0 0 4px rgba(255,255,255,0.06);
-            box-sizing: border-box;
         }
 
         /* 操作系 */
@@ -175,12 +174,12 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            font-size: 13px; /* スマホ用に若干縮小 */
+            font-size: 13px;
             gap: 10px;
         }
         
         .setting-row span {
-            line-height: 1.3;
+            line-height: 1.4;
         }
 
         /* トグルスイッチ */
@@ -221,7 +220,7 @@
 
         .btn-start {
             width: 100%;
-            padding: 15px;
+            padding: 14px 10px;
             font-size: 16px;
             font-weight: bold;
             background: linear-gradient(135deg, var(--pastel-red), var(--lavender));
@@ -250,7 +249,7 @@
         /* 追加式の記入欄 */
         .inputs-panel {
             background: #35293f;
-            padding: 15px;
+            padding: 15px 12px;
             border-radius: 14px;
             border: 1px solid rgba(255,255,255,0.06);
             display: flex;
@@ -260,7 +259,7 @@
 
         @media (max-width: 800px) {
             .inputs-panel {
-                max-height: none; /* スマホ時は全体のスクロールに任せてバッティングを防ぐ */
+                max-height: none; /* スマホ時はスクロールのバッティングを防ぐため制限解除 */
             }
         }
 
@@ -276,7 +275,7 @@
         .input-scroll-area {
             overflow-y: auto;
             flex: 1;
-            padding-right: 4px;
+            padding-right: 2px;
             margin-bottom: 12px;
         }
 
@@ -287,18 +286,20 @@
             margin-bottom: 12px;
             padding-bottom: 12px;
             border-bottom: 1px dashed #4f3f5a;
+            width: 100%;
         }
 
         .input-top-row {
             display: flex;
             align-items: center;
             gap: 6px;
+            width: 100%;
         }
 
         .input-num {
             font-size: 12px;
             color: #b8a8c0;
-            width: 20px;
+            width: 18px;
             text-align: right;
             flex-shrink: 0;
         }
@@ -307,19 +308,20 @@
             background: #1c1620;
             border: 1px solid #4f3f5a;
             color: #fff;
-            padding: 8px 8px;
+            padding: 8px 6px; /* パディングを狭めてはみ出し防止 */
             border-radius: 10px;
             font-size: 13px;
-            min-width: 0; /* flex内の縮小用ジレンマ回避 */
+            min-width: 0; /* フレックスコンテナ内での縮小を許可 */
         }
 
         .penalty-select {
-            flex: 1.1;
+            flex: 1;
             cursor: pointer;
         }
 
         .penalty-input {
             flex: 1.4;
+            width: 100%;
         }
 
         .penalty-input:focus, .penalty-select:focus {
@@ -332,11 +334,12 @@
             background: none;
             border: 1px solid #5a4a64;
             color: #c4b4cc;
-            padding: 8px 12px;
+            padding: 8px 10px;
             border-radius: 10px;
             cursor: pointer;
             font-size: 13px;
             flex-shrink: 0;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .btn-delete:hover {
@@ -344,39 +347,52 @@
             color: var(--danger-color);
         }
 
+        /* 下段プリセットレイアウトのスマホ最適化 */
         .preset-sub-row {
             display: flex;
             gap: 6px;
-            margin-left: 26px;
+            margin-left: 24px;
             align-items: center;
-            flex-wrap: wrap; /* スマホ画面で溢れたら折り返す */
+            flex-wrap: wrap; /* 画面幅に合わせて折り返す */
+            width: calc(100% - 24px);
         }
 
         .food-name-input {
-            width: 90px;
+            width: 80px;
             background: #1c1620;
             border: 1px solid #6c587b;
             color: #fff;
-            padding: 6px 10px;
+            padding: 6px 8px;
             border-radius: 8px;
             font-size: 13px;
             flex-grow: 1;
-            max-width: 120px;
+            min-width: 60px;
+        }
+
+        @media (max-width: 400px) {
+            .preset-sub-row {
+                display: grid;
+                grid-template-columns: auto 1fr auto; /* 超小型画面で横一列を綺麗に収める */
+                align-items: center;
+            }
         }
 
         .action-buttons {
             display: flex;
             gap: 10px;
+            width: 100%;
         }
 
         .btn-action {
             flex: 1;
-            padding: 12px;
+            padding: 12px 8px;
             font-size: 14px;
             font-weight: bold;
             border-radius: 10px;
             cursor: pointer;
             border: none;
+            text-align: center;
+            white-space: nowrap;
             -webkit-tap-highlight-color: transparent;
         }
 
@@ -399,7 +415,6 @@
             background-color: transparent;
             color: var(--danger-color);
             border: 1px solid var(--danger-color);
-            border-radius: 10px;
         }
         .btn-clear:hover {
             background-color: var(--danger-color);
@@ -411,6 +426,7 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
+            width: 100%;
         }
         .stats-layout .stats-box:last-child {
             grid-column: 1 / -1;
@@ -429,6 +445,7 @@
             padding: 15px;
             max-height: 350px;
             overflow-y: auto;
+            width: 100%;
         }
 
         .stats-box h3 {
@@ -486,11 +503,10 @@
             border-radius: 22px;
             text-align: center;
             max-width: 450px;
-            width: 85%;
+            width: 88%;
             box-shadow: 0 0 36px var(--pastel-red-glow);
             position: relative;
             overflow: hidden;
-            box-sizing: border-box;
         }
         .result-card h2 {
             margin: 0 0 15px 0;
@@ -556,7 +572,7 @@
         .modal-content {
             background: var(--container-bg);
             border: 1px solid var(--danger-color);
-            padding: 25px;
+            padding: 25px 20px;
             border-radius: 18px;
             max-width: 500px;
             width: 90%;
@@ -564,10 +580,9 @@
             overflow-y: auto;
             text-align: center;
             box-shadow: 0 0 24px rgba(255, 138, 122, 0.25);
-            box-sizing: border-box;
         }
         .modal h2 { margin-top: 0; font-size: 18px; color: var(--danger-color); }
-        .modal p { font-size: 14px; line-height: 1.5; }
+        .modal p { font-size: 14px; line-height: 1.5; margin-bottom: 20px; }
         .btn-modal-confirm {
             background: var(--danger-color);
             color: #3a1f2a;
@@ -578,7 +593,6 @@
             cursor: pointer;
             font-size: 14px;
             width: 100%;
-            box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
         }
         .btn-modal-confirm:hover { background: #ffb4a2; }
@@ -587,11 +601,11 @@
 <body>
 
 <div class="container">
-    <h1>💀 罰ゲームルーレット<br class="smart-break" style="display:none;"><span style="font-size: 0.85em;">(リセット機能付き)</span> 💀</h1>
+    <h1>💀 罰ゲームルーレット<br><span style="font-size: 0.8em; font-weight: normal;">(リセット機能付き)</span></h1>
     
     <div class="tab-menu">
         <button class="tab-btn active" onclick="switchTab('main-tab', this)">メインルーレット</button>
-        <button class="tab-btn" onclick="switchTab('stats-tab', this)">データ・履歴</button>
+        <button class="tab-btn" onclick="switchTab('stats-tab', this)">データ・履歴ログ</button>
     </div>
 
     <div id="main-tab" class="tab-content active">
@@ -671,12 +685,6 @@
 </div>
 
 <script>
-// CSSの微調整用（スマホ判定対応の改行制御など）
-if(window.innerWidth <= 480) {
-    const br = document.querySelector('.smart-break');
-    if(br) br.style.display = 'block';
-}
-
 let itemsList = []; 
 let stats = {};
 let logs = [];
@@ -857,7 +865,7 @@ function renderFields() {
             const labelText = document.createElement('span');
             labelText.style.fontSize = '12px';
             labelText.style.color = '#b8a8c0';
-            labelText.innerText = '何を選ぶ？ ➔ ';
+            labelText.innerText = '対象 ➔';
             subRow.appendChild(labelText);
 
             const foodInput = document.createElement('input');
@@ -1021,7 +1029,7 @@ function spinWheel() {
     const finalAngle = targetAngle - (Math.PI * 2 * 6); 
     
     let startTimestamp = null;
-    const duration = multiSpinRemaining > 0 ? 1500 : 4000; 
+    const duration = multiSpinRemaining > 0 ? 1200 : 4000; 
 
     function animate(timestamp) {
         if (!startTimestamp) startTimestamp = timestamp;
@@ -1072,7 +1080,7 @@ function spawnConfetti() {
     card.querySelectorAll('.confetti-piece').forEach(el => el.remove());
 
     const confettiColors = ['#ff8fab', '#c9a8ff', '#fff4e0', '#ffb4a2', '#a8e6cf'];
-    const pieceCount = 20;
+    const pieceCount = 24;
 
     for (let i = 0; i < pieceCount; i++) {
         const piece = document.createElement('div');
@@ -1170,11 +1178,13 @@ function processResult(result) {
     }
 }
 
+// モーダルを開く
 function openResetModal() {
     const modal = document.getElementById('resetModal');
     modal.classList.add('active');
 }
 
+// リセット実行
 function executeReset() {
     cumulativeLogs = [];
     localStorage.setItem('canvasCumulativeLogs_v3', JSON.stringify(cumulativeLogs));
