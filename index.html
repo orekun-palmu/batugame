@@ -652,6 +652,9 @@
     </div>
 
     <div id="stats-tab" class="tab-content">
+        <div class="stats-actions" style="margin-bottom: 12px; text-align: right;">
+            <button class="btn-action btn-clear" style="flex: none; padding: 8px 16px;" onclick="manualResetCumulative()">🔄 累計をリセット</button>
+        </div>
         <div class="stats-layout">
             <div class="stats-box">
                 <h3>📊 累計当選数</h3>
@@ -1185,14 +1188,27 @@ function openResetModal() {
     modal.classList.add('active');
 }
 
-// リセット実行
+// リセット実行（ルーレットの「リセット」当選時）
 function executeReset() {
     cumulativeLogs = [];
+    stats = {};
     localStorage.setItem('canvasCumulativeLogs_v3', JSON.stringify(cumulativeLogs));
+    localStorage.setItem('canvasRouletteStats_v3', JSON.stringify(stats));
     updateStatsDisplay();
 
     document.getElementById('resetModal').classList.remove('active');
     advanceMultiSpin();
+}
+
+// 手動で累計をリセット（いつでも実行可能）
+function manualResetCumulative() {
+    if (!confirm('累計当選数と累計値をすべてリセットします。よろしいですか？')) return;
+
+    cumulativeLogs = [];
+    stats = {};
+    localStorage.setItem('canvasCumulativeLogs_v3', JSON.stringify(cumulativeLogs));
+    localStorage.setItem('canvasRouletteStats_v3', JSON.stringify(stats));
+    updateStatsDisplay();
 }
 
 function saveItems() {
