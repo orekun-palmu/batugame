@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>罰ゲームルーレット(リセット・手動調整機能付き)</title>
+    <title>罰ゲームルーレット(リセット・手動調整・リスナー集計機能付き)</title>
     <style>
         :root {
             /* キュート・パステル パレット */
@@ -39,7 +39,7 @@
         }
 
         .container {
-            max-width: 900px;
+            max-width: 1000px;
             width: 100%;
             background: var(--container-bg);
             padding: 16px 12px;
@@ -103,11 +103,11 @@
         /* メインレイアウト */
         .main-layout {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1.1fr 1fr;
             gap: 16px;
         }
 
-        @media (max-width: 640px) {
+        @media (max-width: 768px) {
             .main-layout {
                 grid-template-columns: 1fr;
                 gap: 14px;
@@ -127,7 +127,7 @@
         .canvas-container {
             position: relative;
             width: 100%;
-            max-width: min(300px, 80vw);
+            max-width: min(280px, 75vw);
             aspect-ratio: 1 / 1;
             margin: 0 auto 16px;
         }
@@ -176,7 +176,9 @@
             justify-content: space-between;
             font-size: 13px;
             gap: 8px;
+            margin-bottom: 6px;
         }
+        .setting-row:last-child { margin-bottom: 0; }
         
         .setting-row span { line-height: 1.4; }
 
@@ -216,6 +218,26 @@
             background-color: #3a1f2a;
         }
 
+        /* ガチャ回数セレクト */
+        .spin-select-wrap {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #1c1620;
+            padding: 4px 8px;
+            border-radius: 10px;
+            border: 1px solid #4f3f5a;
+        }
+        .spin-count-select {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 14px;
+            font-weight: bold;
+            outline: none;
+            cursor: pointer;
+        }
+
         .btn-start {
             width: 100%;
             padding: 13px 10px;
@@ -243,6 +265,45 @@
             box-shadow: none !important;
         }
 
+        /* リスナー管理スタイル */
+        .listener-manager {
+            background: #251b2e;
+            border: 1px dashed rgba(255, 143, 171, 0.3);
+            border-radius: 12px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .listener-input-row {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        .listener-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            max-height: 80px;
+            overflow-y: auto;
+        }
+        .listener-tag {
+            background: #3d2a45;
+            border: 1px solid #5d4366;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .listener-tag .btn-del-tag {
+            background: none;
+            border: none;
+            color: var(--danger-color);
+            cursor: pointer;
+            font-weight: bold;
+            padding: 0;
+        }
+
         /* 追加式の記入欄 */
         .inputs-panel {
             background: #35293f;
@@ -265,13 +326,13 @@
         .input-scroll-area {
             overflow-y: auto;
             flex: 1;
-            max-height: 360px;
+            max-height: 480px;
             padding-right: 2px;
             margin-bottom: 10px;
             -webkit-overflow-scrolling: touch;
         }
 
-        @media (max-width: 640px) {
+        @media (max-width: 768px) {
             .input-scroll-area { max-height: none; }
         }
 
@@ -301,7 +362,7 @@
             flex-shrink: 0;
         }
 
-        .penalty-select, .penalty-input, .preset-num-input, .preset-unit-select {
+        .penalty-select, .penalty-input, .preset-num-input, .preset-unit-select, .listener-select {
             background: #1c1620;
             border: 1px solid #4f3f5a;
             color: #fff;
@@ -312,8 +373,7 @@
             max-width: 100%;
         }
 
-        .penalty-select {
-            flex: 1;
+        .penalty-select, .listener-select {
             cursor: pointer;
         }
 
@@ -333,7 +393,7 @@
             cursor: pointer;
         }
 
-        .penalty-input:focus, .penalty-select:focus, .preset-num-input:focus, .preset-unit-select:focus {
+        .penalty-input:focus, .penalty-select:focus, .preset-num-input:focus, .preset-unit-select:focus, .listener-select:focus {
             border-color: var(--pastel-red);
             outline: none;
             box-shadow: 0 0 6px var(--pastel-red-glow);
@@ -467,6 +527,9 @@
             gap: 12px;
             width: 100%;
         }
+        .stats-layout .stats-box:nth-child(3) {
+            grid-column: 1 / -1;
+        }
         .stats-layout .stats-box:last-child {
             grid-column: 1 / -1;
         }
@@ -475,7 +538,7 @@
             .stats-layout {
                 grid-template-columns: 1fr;
             }
-            .stats-layout .stats-box:last-child {
+            .stats-layout .stats-box:nth-child(3), .stats-layout .stats-box:last-child {
                 grid-column: auto;
             }
         }
@@ -515,6 +578,23 @@
             border-bottom: 1px dashed #4f3f5a;
             gap: 8px;
             flex-wrap: wrap;
+        }
+
+        .listener-report-block {
+            background: #251b2e;
+            border-radius: 8px;
+            padding: 8px;
+            margin-bottom: 8px;
+            border: 1px solid #4f3f5a;
+        }
+        .listener-report-title {
+            font-weight: bold;
+            color: var(--pastel-red);
+            border-bottom: 1px solid #3d2f47;
+            padding-bottom: 4px;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
         }
 
         .cumulative-group-item {
@@ -615,13 +695,15 @@
             letter-spacing: 0.1em;
         }
         .result-text {
-            font-size: clamp(18px, 5vw, 24px);
+            font-size: clamp(16px, 4.5vw, 22px);
             font-weight: bold;
             color: #fff;
             margin-bottom: 20px;
             word-break: break-all;
             text-shadow: 0 0 10px rgba(255,255,255,0.25);
             line-height: 1.4;
+            max-height: 250px;
+            overflow-y: auto;
         }
         .btn-close-result {
             background: linear-gradient(135deg, var(--pastel-red), var(--lavender));
@@ -699,7 +781,7 @@
 <body>
 
 <div class="container">
-    <h1>💀 罰ゲームルーレット<br><span style="font-size: 0.8em; font-weight: normal;">(リセット・手動調整機能付き)</span></h1>
+    <h1>💀 罰ゲームルーレット<br><span style="font-size: 0.8em; font-weight: normal;">(リスナー登録・最大100連・調整機能付き)</span></h1>
     
     <div class="tab-menu">
         <button class="tab-btn active" onclick="switchTab('main-tab', this)">メインルーレット</button>
@@ -716,7 +798,23 @@
                 </div>
                 
                 <div class="control-panel">
+                    <!-- リスナー登録枠 -->
+                    <div class="listener-manager">
+                        <div style="font-size:12px; font-weight:bold; margin-bottom:4px; color:var(--pastel-red);">👥 リスナー名登録</div>
+                        <div class="listener-input-row">
+                            <input type="text" id="listenerInput" class="penalty-input" style="padding:5px;" placeholder="名前を入力">
+                            <button class="btn-action btn-add" style="padding:4px 10px; flex:none;" onclick="addListenerName()">登録</button>
+                        </div>
+                        <div class="listener-tags" id="listenerTags"></div>
+                    </div>
+
                     <div class="setting-box">
+                        <div class="setting-row">
+                            <span>👤 誰が引く？</span>
+                            <select id="activeListenerSelect" class="listener-select" style="padding:4px 8px;">
+                                <option value="ゲスト">ゲスト (未選択)</option>
+                            </select>
+                        </div>
                         <div class="setting-row">
                             <span>🔄 リセット項目を混ぜる<br><small style="color: #b8a8c0;">確率は下で自由に設定できます</small></span>
                             <label class="switch">
@@ -731,9 +829,39 @@
                                 <span class="prob-percent">%</span>
                             </div>
                         </div>
+                        <!-- 回数選択エリア拡張 -->
+                        <div class="setting-row" style="margin-top:8px; padding-top:8px; border-top:1px dashed #4f3f5a;">
+                            <span>🎯 ガチャ回数を選択</span>
+                            <div class="spin-select-wrap">
+                                <select id="spinCountSelect" class="spin-count-select" onchange="toggleSkipOptionVisibility()">
+                                    <!-- 1〜20回 -->
+                                    <script>
+                                        for(let i=1; i<=20; i++){
+                                            document.write(`<option value="${i}">${i} 連</option>`);
+                                        }
+                                    </script>
+                                    <!-- 10刻み100まで -->
+                                    <option value="30">30 連</option>
+                                    <option value="40">40 連</option>
+                                    <option value="50">50 連</option>
+                                    <option value="60">60 連</option>
+                                    <option value="70">70 連</option>
+                                    <option value="80">80 連</option>
+                                    <option value="90">90 連</option>
+                                    <option value="100">100 連</option>
+                                </select>
+                            </div>
+                        </div>
+                        <!-- 20連以上の結果スキップオプション -->
+                        <div class="setting-row" id="skipOptionRow" style="margin-top:6px; display:none;">
+                            <span style="color:var(--lavender); font-size:12px;">⏩ アニメーションをスキップ</span>
+                            <label class="switch">
+                                <input type="checkbox" id="skipAnimationToggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
                     </div>
-                    <button class="btn-start" id="btnStart" onclick="spinWheel()">ルーレットを回す！</button>
-                    <button class="btn-start" id="btnStart10" onclick="startMultiSpin(10)" style="margin-top:4px; background: linear-gradient(135deg, var(--lavender), var(--pastel-red));">🔥 10連続で回す！</button>
+                    <button class="btn-start" id="btnStart" onclick="startSpinProcess()">ルーレットを回す！</button>
                     <div id="multiSpinStatus" style="display:none; text-align:center; font-size:13px; color:#c9a8ff; margin-top:4px;"></div>
                 </div>
             </div>
@@ -758,11 +886,15 @@
 
     <div id="stats-tab" class="tab-content">
         <div class="stats-actions" style="margin-bottom: 12px; text-align: right;">
-            <button class="btn-action btn-clear" style="flex: none; padding: 8px 16px;" onclick="manualResetCumulative()">🔄 累計をリセット</button>
+            <button class="btn-action btn-clear" style="flex: none; padding: 8px 16px;" onclick="manualResetCumulative()">🔄 累計・集計をすべてリセット</button>
         </div>
         <div class="stats-layout">
             <div class="stats-box">
-                <h3>📊 累計当選数</h3>
+                <h3>👥 リスナーごとの集計 (誰が・合計何回・何を)</h3>
+                <div id="listenerStatsList" class="stats-list">まだリスナーの当選データがありません</div>
+            </div>
+            <div class="stats-box">
+                <h3>📊 全体累計当選数</h3>
                 <div id="statsList" class="stats-list">まだ当選データがありません</div>
             </div>
             <div class="stats-box">
@@ -796,8 +928,10 @@
 <script>
 let itemsList = []; 
 let stats = {};
+let listenerStats = {}; // リスナーごとの個別集計構造: { "名前": { total: 0, items: { "項目": 2 } } }
 let logs = [];
 let cumulativeLogs = []; 
+let registeredListeners = []; // 登録リスナー配列
 
 // ルーレット制御用変数
 const canvas = document.getElementById('rouletteCanvas');
@@ -821,6 +955,7 @@ window.onload = function() {
         addField();
     }
     syncRouletteWheel();
+    toggleSkipOptionVisibility();
 };
 
 // タブ切り替え
@@ -836,6 +971,70 @@ function switchTab(tabId, btn) {
     }
 }
 
+// リスナー登録追加
+function addListenerName() {
+    const input = document.getElementById('listenerInput');
+    const name = input.value.trim();
+    if(!name) return;
+    if(registeredListeners.includes(name)) {
+        alert('その名前は既に登録されています。');
+        return;
+    }
+    registeredListeners.push(name);
+    input.value = '';
+    saveListeners();
+    renderListeners();
+}
+
+// リスナー削除
+function deleteListenerName(name) {
+    registeredListeners = registeredListeners.filter(l => l !== name);
+    saveListeners();
+    renderListeners();
+}
+
+// リスナーUIレンダリング
+function renderListeners() {
+    const tagsContainer = document.getElementById('listenerTags');
+    const select = document.getElementById('activeListenerSelect');
+    
+    // セレクトボックスの同期
+    const currentSelected = select.value;
+    select.innerHTML = '<option value="ゲスト">ゲスト (未選択)</option>';
+    
+    tagsContainer.innerHTML = '';
+    registeredListeners.forEach(name => {
+        // タグ生成
+        const tag = document.createElement('div');
+        tag.className = 'listener-tag';
+        tag.innerHTML = `<span>${name}</span>`;
+        const delBtn = document.createElement('button');
+        delBtn.className = 'btn-del-tag';
+        delBtn.innerText = '×';
+        delBtn.onclick = () => deleteListenerName(name);
+        tag.appendChild(delBtn);
+        tagsContainer.appendChild(tag);
+
+        // オプション生成
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.innerText = name;
+        if(name === currentSelected) opt.selected = true;
+        select.appendChild(opt);
+    });
+}
+
+function toggleSkipOptionVisibility() {
+    const count = parseInt(document.getElementById('spinCountSelect').value);
+    const skipRow = document.getElementById('skipOptionRow');
+    if(count >= 20) {
+        skipRow.style.display = 'flex';
+    } else {
+        skipRow.style.display = 'none';
+        document.getElementById('skipAnimationToggle').checked = false;
+    }
+}
+
 // 項目を追加 (最大50個)
 function addField() {
     if (itemsList.length >= 50) return;
@@ -845,8 +1044,8 @@ function addField() {
         id: id, 
         mode: 'custom', 
         presetType: 'ご自愛', 
-        value: '', // 自由入力時は文字列、プリセット時は数値(文字列)として扱う
-        presetUnit: '時間', // 時間指定用の単位初期値
+        value: '', 
+        presetUnit: '時間', 
         foodName: 'プリン',
         prob: 10
     });
@@ -872,7 +1071,6 @@ function getItemText(item) {
         if (item.presetType === '〇〇を食べる') {
             return `${item.foodName || '〇〇'}を${item.value}食べる`;
         } else {
-            // 自由指定された数値と単位を結合
             const num = item.value || '1';
             const unit = item.presetUnit || '時間';
             return `${item.presetType}${num}${unit}`;
@@ -925,7 +1123,6 @@ function renderFields() {
                 if(val === '〇〇を食べる') {
                     item.value = COUNT_PRESETS[0];
                 } else {
-                    // 時間系の初期設定値
                     item.value = '1'; 
                     item.presetUnit = '時間';
                 }
@@ -949,7 +1146,6 @@ function renderFields() {
             };
             topRow.appendChild(input);
         } else if (item.presetType === '〇〇を食べる') {
-            // 個数選択
             const valueSelect = document.createElement('select');
             valueSelect.className = 'penalty-input';
             COUNT_PRESETS.forEach(v => {
@@ -966,7 +1162,6 @@ function renderFields() {
             };
             topRow.appendChild(valueSelect);
         } else {
-            // 時間自由入力用 (数値入力 + 単位セレクト)
             const numInput = document.createElement('input');
             numInput.type = 'number';
             numInput.className = 'preset-num-input';
@@ -1107,13 +1302,11 @@ function syncRouletteWheel() {
     drawWheel(currentAngle);
 }
 
-// 各セグメントの重み（確率）から実際の角度範囲を計算
 function computeSegments() {
     const rawWeights = currentPool.map(seg => (typeof seg.weight === 'number' && seg.weight > 0) ? seg.weight : 0);
     let totalWeight = rawWeights.reduce((a, b) => a + b, 0);
     let weights = rawWeights;
 
-    // すべて0（未設定）の場合は均等割りにフォールバック
     if (totalWeight <= 0) {
         weights = currentPool.map(() => 1);
         totalWeight = currentPool.length;
@@ -1128,7 +1321,6 @@ function computeSegments() {
     });
 }
 
-// 項目リストの確率合計を表示
 function updateTotalProbDisplay() {
     const isResetAvailable = document.getElementById('resetToggle').checked;
     let total = itemsList.reduce((sum, item) => {
@@ -1214,21 +1406,72 @@ function varColor(varName) {
 let multiSpinRemaining = 0;
 let multiSpinTotal = 0;
 let resetPending = false;
+let skippedResultsBuffer = []; // スキップ時の結果格納用
 
-function startMultiSpin(count) {
+function startSpinProcess() {
     if (isSpinning || multiSpinRemaining > 0) return;
-    multiSpinRemaining = count;
-    multiSpinTotal = count;
-    document.getElementById('btnStart10').disabled = true;
-    updateMultiSpinStatus();
-    spinWheel();
+    
+    const count = parseInt(document.getElementById('spinCountSelect').value);
+    const skipAnim = document.getElementById('skipAnimationToggle').checked;
+
+    const listener = document.getElementById('activeListenerSelect').value;
+
+    if (skipAnim && count >= 20) {
+        // 結果スキップ処理 (アニメーションなしで即時反映)
+        executeFastSpins(count, listener);
+    } else {
+        // 通常の連続回転処理
+        multiSpinRemaining = count;
+        multiSpinTotal = count;
+        document.getElementById('btnStart').disabled = true;
+        updateMultiSpinStatus();
+        spinWheel();
+    }
+}
+
+// 20連以上一瞬でスキップ処理をするロジック
+function executeFastSpins(count, listener) {
+    const segments = computeSegments();
+    let originalPendingReset = false;
+    let fastResults = [];
+
+    for (let i = 0; i < count; i++) {
+        const targetIndex = pickWeightedIndex(segments);
+        const result = currentPool[targetIndex];
+        
+        processResultDataOnly(result, listener);
+        fastResults.push(result.name);
+
+        if (result.type === 'reset') {
+            originalPendingReset = true;
+        }
+    }
+
+    // まとめて結果をモーダルで開く
+    const overlay = document.getElementById('resultOverlay');
+    const txt = document.getElementById('resultText');
+    const titleEl = document.querySelector('.result-card h2');
+    
+    titleEl.innerText = `高速抽選結果 (${count}連・リスナー: ${listener})`;
+    txt.innerHTML = fastResults.map((name, idx) => `<div style="font-size:13px; border-bottom:1px dashed #3d2f47; padding:2px 0;">${idx+1}回目: ${name}</div>`).join('');
+    
+    overlay.classList.add('active');
+    spawnConfetti();
+
+    if (originalPendingReset) {
+        resetPending = true;
+        setTimeout(() => {
+            openResetModal();
+        }, 1000);
+    }
 }
 
 function updateMultiSpinStatus() {
     const statusEl = document.getElementById('multiSpinStatus');
     if (multiSpinRemaining > 0) {
         statusEl.style.display = 'block';
-        statusEl.innerText = `🎯 残り ${multiSpinRemaining} 回`;
+        const listener = document.getElementById('activeListenerSelect').value;
+        statusEl.innerText = `🎯 [${listener}] 残り ${multiSpinRemaining} 回`;
     } else {
         statusEl.style.display = 'none';
     }
@@ -1249,7 +1492,6 @@ function spinWheel() {
 
     isSpinning = true;
     document.getElementById('btnStart').disabled = true;
-    document.getElementById('btnStart10').disabled = true;
 
     const segments = computeSegments();
     const targetIndex = pickWeightedIndex(segments);
@@ -1263,7 +1505,7 @@ function spinWheel() {
     const finalAngle = targetAngle - (Math.PI * 2 * 6); 
     
     let startTimestamp = null;
-    const duration = multiSpinRemaining > 0 ? 1200 : 4000; 
+    const duration = multiSpinRemaining > 1 ? 800 : 3500; // 連続時は高速化
 
     function animate(timestamp) {
         if (!startTimestamp) startTimestamp = timestamp;
@@ -1280,11 +1522,11 @@ function spinWheel() {
         } else {
             isSpinning = false;
             document.getElementById('btnStart').disabled = false;
-            if (multiSpinRemaining === 0) document.getElementById('btnStart10').disabled = false;
             
             const result = currentPool[targetIndex];
+            const currentListener = document.getElementById('activeListenerSelect').value;
             showResultPopup(result);
-            processResult(result);
+            processResultDataOnly(result, currentListener);
         }
     }
 
@@ -1295,14 +1537,14 @@ function showResultPopup(result) {
     const overlay = document.getElementById('resultOverlay');
     const txt = document.getElementById('resultText');
     const titleEl = document.querySelector('.result-card h2');
+    const currentListener = document.getElementById('activeListenerSelect').value;
     txt.innerText = result.name;
 
-    if (multiSpinRemaining > 0) {
-        const total = multiSpinTotal;
-        const current = total - multiSpinRemaining + 1;
-        titleEl.innerText = `抽選結果（${current}/${total}回目）`;
+    if (multiSpinTotal > 1) {
+        const current = multiSpinTotal - multiSpinRemaining + 1;
+        titleEl.innerText = `抽選結果（${current}/${multiSpinTotal}回目）- [${currentListener}]`;
     } else {
-        titleEl.innerText = '抽選結果';
+        titleEl.innerText = `抽選結果 - [${currentListener}]`;
     }
 
     overlay.classList.add('active');
@@ -1336,14 +1578,12 @@ const TIME_UNIT_TO_HOURS = {
     '分': 1 / 60, 'm': 1 / 60, 'min': 1 / 60
 };
 
-// 表記ブレに対応して数値を抽出するロジック
 function parseAmount(text) {
     const normalized = text
         .replace(/[ｈＨ]/g, 'h')
         .replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
     
     const cleanText = normalized.replace('を食べる', '');
-    // 小数点「\d+(?:\.\d+)?」にも一致するように正規表現を維持
     const match = cleanText.match(/(\d+(?:\.\d+)?)\s*(時間|日|分|h|min|m|回|個|点|本|枚|杯|分間)/);
     if (!match) return null;
     const num = parseFloat(match[1]);
@@ -1352,7 +1592,7 @@ function parseAmount(text) {
     
     const isTime = Object.prototype.hasOwnProperty.call(TIME_UNIT_TO_HOURS, unit);
     
-    let label = normalized.replace(match[0], '').replace('を食べる', '').trim();
+    let label = normalized.replace(match[0], '').replace('లను食べる', '').replace('を食べる', '').trim();
     if (!label) label = normalized;
     return { num, unit, isTime, label };
 }
@@ -1371,24 +1611,36 @@ function advanceMultiSpin() {
         multiSpinRemaining--;
         updateMultiSpinStatus();
         if (multiSpinRemaining > 0) {
-            setTimeout(() => spinWheel(), 400);
+            setTimeout(() => spinWheel(), 300);
         } else {
             multiSpinTotal = 0;
-            document.getElementById('btnStart10').disabled = false;
+            document.getElementById('btnStart').disabled = false;
         }
     }
 }
 
-function processResult(result) {
+// データ処理だけを共通化したロジック (通常回転・スキップ両対応)
+function processResultDataOnly(result, listenerName) {
+    // 1. 全体統計
     stats[result.name] = (stats[result.name] || 0) + 1;
-    localStorage.setItem('canvasRouletteStats_v3', JSON.stringify(stats));
+    localStorage.setItem('canvasRouletteStats_v4', JSON.stringify(stats));
 
+    // 2. リスナー統計
+    if(!listenerStats[listenerName]) {
+        listenerStats[listenerName] = { total: 0, items: {} };
+    }
+    listenerStats[listenerName].total += 1;
+    listenerStats[listenerName].items[result.name] = (listenerStats[listenerName].items[result.name] || 0) + 1;
+    localStorage.setItem('canvasListenerStats_v4', JSON.stringify(listenerStats));
+
+    // 3. ログ
     const now = new Date();
     const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
-    logs.unshift(`[${timeStr}] ${result.name}`);
+    logs.unshift(`[${timeStr}] (${listenerName}) ${result.name}`);
     if (logs.length > 100) logs.pop();
-    localStorage.setItem('canvasRouletteLogs_v3', JSON.stringify(logs));
+    localStorage.setItem('canvasRouletteLogs_v4', JSON.stringify(logs));
 
+    // 4. 累計値計算
     if (result.type === 'penalty') {
         const parsed = parseAmount(result.name);
         if (parsed) {
@@ -1401,7 +1653,7 @@ function processResult(result) {
                 label: parsed.label,
                 timestamp: timeStr
             });
-            localStorage.setItem('canvasCumulativeLogs_v3', JSON.stringify(cumulativeLogs));
+            localStorage.setItem('canvasCumulativeLogs_v4', JSON.stringify(cumulativeLogs));
         }
     }
 
@@ -1410,9 +1662,10 @@ function processResult(result) {
 
     if (result.type === 'reset') {
         resetPending = true;
-        setTimeout(() => {
-            openResetModal();
-        }, 600);
+        // 通常スピン時のみタイムアウトで自動表示(スキップ時はFastSpins側で制御)
+        if(multiSpinRemaining > 0) {
+            setTimeout(() => { openResetModal(); }, 600);
+        }
     }
 }
 
@@ -1424,8 +1677,10 @@ function openResetModal() {
 function executeReset() {
     cumulativeLogs = [];
     stats = {};
-    localStorage.setItem('canvasCumulativeLogs_v3', JSON.stringify(cumulativeLogs));
-    localStorage.setItem('canvasRouletteStats_v3', JSON.stringify(stats));
+    listenerStats = {};
+    localStorage.setItem('canvasCumulativeLogs_v4', JSON.stringify(cumulativeLogs));
+    localStorage.setItem('canvasRouletteStats_v4', JSON.stringify(stats));
+    localStorage.setItem('canvasListenerStats_v4', JSON.stringify(listenerStats));
     updateStatsDisplay();
 
     document.getElementById('resetModal').classList.remove('active');
@@ -1433,16 +1688,17 @@ function executeReset() {
 }
 
 function manualResetCumulative() {
-    if (!confirm('累計当選数と累計値をすべてリセットします。よろしいですか？')) return;
+    if (!confirm('累計当選数、リスナー別データ、累計値をすべてクリアします。よろしいですか？')) return;
 
     cumulativeLogs = [];
     stats = {};
-    localStorage.setItem('canvasCumulativeLogs_v3', JSON.stringify(cumulativeLogs));
-    localStorage.setItem('canvasRouletteStats_v3', JSON.stringify(stats));
+    listenerStats = {};
+    localStorage.setItem('canvasCumulativeLogs_v4', JSON.stringify(cumulativeLogs));
+    localStorage.setItem('canvasRouletteStats_v4', JSON.stringify(stats));
+    localStorage.setItem('canvasListenerStats_v4', JSON.stringify(listenerStats));
     updateStatsDisplay();
 }
 
-// 手動調整を適用する関数
 function applyAdjustment(label, isPlus) {
     const inputEl = document.getElementById(`adj-input-${label}`);
     const unitEl = document.getElementById(`adj-unit-${label}`);
@@ -1461,12 +1717,10 @@ function applyAdjustment(label, isPlus) {
     const now = new Date();
     const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
 
-    // 履歴ログにも調整内容を残す
     const logSign = isPlus ? '＋' : '－';
     logs.unshift(`[${timeStr}] 🛠️ 手動調整: ${label} (${logSign}${val}${unit})`);
-    localStorage.setItem('canvasRouletteLogs_v3', JSON.stringify(logs));
+    localStorage.setItem('canvasRouletteLogs_v4', JSON.stringify(logs));
 
-    // 累計データ配列に調整用レコードを挿入
     cumulativeLogs.push({
         id: Date.now() + Math.random(),
         name: `手動調整 (${logSign}${val}${unit})`,
@@ -1477,26 +1731,29 @@ function applyAdjustment(label, isPlus) {
         timestamp: timeStr
     });
 
-    localStorage.setItem('canvasCumulativeLogs_v3', JSON.stringify(cumulativeLogs));
+    localStorage.setItem('canvasCumulativeLogs_v4', JSON.stringify(cumulativeLogs));
     updateStatsDisplay();
     updateLogDisplay();
     
-    // 入力欄をクリア
     inputEl.value = '';
 }
 
 function saveItems() {
-    localStorage.setItem('rouletteItemsList_v3', JSON.stringify(itemsList));
+    localStorage.setItem('rouletteItemsList_v4', JSON.stringify(itemsList));
 }
 
 function saveToggleSetting() {
     const toggle = document.getElementById('resetToggle').checked;
-    localStorage.setItem('canvasResetToggle_v3', toggle);
+    localStorage.setItem('canvasResetToggle_v4', toggle);
 }
 
 function saveResetProb() {
     const val = document.getElementById('resetProbInput').value;
-    localStorage.setItem('canvasResetProb_v3', val);
+    localStorage.setItem('canvasResetProb_v4', val);
+}
+
+function saveListeners() {
+    localStorage.setItem('canvasRegisteredListeners_v4', JSON.stringify(registeredListeners));
 }
 
 function updateResetProbVisibility() {
@@ -1505,7 +1762,7 @@ function updateResetProbVisibility() {
 }
 
 function loadSavedData() {
-    const savedItems = localStorage.getItem('rouletteItemsList_v3');
+    const savedItems = localStorage.getItem('rouletteItemsList_v4');
     if (savedItems) {
         itemsList = JSON.parse(savedItems).map(item => ({
             ...item,
@@ -1515,24 +1772,33 @@ function loadSavedData() {
         renderFields();
     }
 
-    const savedToggle = localStorage.getItem('canvasResetToggle_v3');
+    const savedToggle = localStorage.getItem('canvasResetToggle_v4');
     if (savedToggle !== null) {
         document.getElementById('resetToggle').checked = savedToggle === 'true';
     }
 
-    const savedResetProb = localStorage.getItem('canvasResetProb_v3');
+    const savedResetProb = localStorage.getItem('canvasResetProb_v4');
     if (savedResetProb !== null) {
         document.getElementById('resetProbInput').value = savedResetProb;
     }
     updateResetProbVisibility();
 
-    const savedStats = localStorage.getItem('canvasRouletteStats_v3');
+    const savedListeners = localStorage.getItem('canvasRegisteredListeners_v4');
+    if (savedListeners) {
+        registeredListeners = JSON.parse(savedListeners);
+    }
+    renderListeners();
+
+    const savedStats = localStorage.getItem('canvasRouletteStats_v4');
     if (savedStats) stats = JSON.parse(savedStats);
+
+    const savedListenerStats = localStorage.getItem('canvasListenerStats_v4');
+    if(savedListenerStats) listenerStats = JSON.parse(savedListenerStats);
     
-    const savedLogs = localStorage.getItem('canvasRouletteLogs_v3');
+    const savedLogs = localStorage.getItem('canvasRouletteLogs_v4');
     if (savedLogs) logs = JSON.parse(savedLogs);
 
-    const savedCumulative = localStorage.getItem('canvasCumulativeLogs_v3');
+    const savedCumulative = localStorage.getItem('canvasCumulativeLogs_v4');
     if (savedCumulative) cumulativeLogs = JSON.parse(savedCumulative);
 
     updateStatsDisplay();
@@ -1542,8 +1808,37 @@ function loadSavedData() {
 function updateStatsDisplay() {
     const container = document.getElementById('statsList');
     const cumulativeContainer = document.getElementById('cumulativeList');
-    const filteredStats = Object.entries(stats).filter(([key]) => key !== '❌ はずれ');
+    const listenerContainer = document.getElementById('listenerStatsList');
 
+    // 1. リスナー個別レポート表示
+    if(Object.keys(listenerStats).length === 0) {
+        listenerContainer.innerText = 'まだデータがありません';
+    } else {
+        listenerContainer.innerHTML = '';
+        for (const [name, data] of Object.entries(listenerStats)) {
+            const block = document.createElement('div');
+            block.className = 'listener-report-block';
+            
+            let itemsHtml = '';
+            for(const [itemName, itemCount] of Object.entries(data.items)){
+                itemsHtml += `<div style="display:flex; justify-content:space-between; font-size:12px; color:#d8c8e0; padding-left:8px;">
+                    <span>・${itemName}</span><span>${itemCount}回</span>
+                </div>`;
+            }
+
+            block.innerHTML = `
+                <div class="listener-report-title">
+                    <span>👤 ${name}</span>
+                    <span>合計 ${data.total} 回</span>
+                </div>
+                ${itemsHtml}
+            `;
+            listenerContainer.appendChild(block);
+        }
+    }
+
+    // 2. 全体当選数表示
+    const filteredStats = Object.entries(stats).filter(([key]) => key !== '❌ はずれ');
     if (filteredStats.length === 0) {
         container.innerText = 'まだ当選データがありません';
     } else {
@@ -1556,6 +1851,7 @@ function updateStatsDisplay() {
         });
     }
 
+    // 3. 累計値の手動調整ロジック表示
     if (cumulativeLogs.length === 0) {
         cumulativeContainer.innerText = 'まだ累計データがありません';
     } else {
@@ -1569,12 +1865,9 @@ function updateStatsDisplay() {
 
         for (let label in groups) {
             const entries = groups[label];
-
-            // 時間系レコードの計算（手動のマイナス値もそのまま合算される）
             const timeEntries = entries.filter(l => l.isTime);
             const timeTotalHours = timeEntries.reduce((sum, l) => sum + l.num * TIME_UNIT_TO_HOURS[l.unit], 0);
 
-            // 時間系以外の集計
             const otherTotals = {};
             entries.filter(l => !l.isTime).forEach(l => {
                 otherTotals[l.unit] = (otherTotals[l.unit] || 0) + l.num;
@@ -1593,7 +1886,6 @@ function updateStatsDisplay() {
                 displayStr = displayStr ? `${displayStr}、${otherStrs.join('、')}` : otherStrs.join('、');
             }
 
-            // コンテナ生成
             const groupWrap = document.createElement('div');
             groupWrap.className = 'cumulative-group-item';
 
@@ -1602,7 +1894,6 @@ function updateStatsDisplay() {
             mainRow.innerHTML = `<span>${label}</span><span>${displayStr}</span>`;
             groupWrap.appendChild(mainRow);
 
-            // 手動プラスマイナス調整用UIを動的配置
             const adjPanel = document.createElement('div');
             adjPanel.className = 'adjustment-panel';
 
@@ -1634,7 +1925,6 @@ function updateStatsDisplay() {
                 <button class="btn-adj btn-adj-minus" onclick="applyAdjustment('${label}', false)">－引く</button>
             `;
             groupWrap.appendChild(adjPanel);
-
             cumulativeContainer.appendChild(groupWrap);
         }
     }
