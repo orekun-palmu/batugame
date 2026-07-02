@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>罰ゲームルーレット(リセット機能付き)</title>
+    <title>罰ゲームルーレット(リセット・手動調整機能付き)</title>
     <style>
         :root {
             /* キュート・パステル パレット */
@@ -18,6 +18,7 @@
             --border-color: rgba(255, 143, 171, 0.22);
             --danger-color: #ff8a7a;
             --tab-inactive: #352a3d;
+            --success-color: #a8e6cf;
         }
 
         * {
@@ -300,7 +301,7 @@
             flex-shrink: 0;
         }
 
-        .penalty-select, .penalty-input {
+        .penalty-select, .penalty-input, .preset-num-input, .preset-unit-select {
             background: #1c1620;
             border: 1px solid #4f3f5a;
             color: #fff;
@@ -321,10 +322,53 @@
             width: 100%;
         }
 
-        .penalty-input:focus, .penalty-select:focus {
+        .preset-num-input {
+            flex: 0.8;
+            text-align: center;
+            width: 100%;
+        }
+
+        .preset-unit-select {
+            flex: 0.6;
+            cursor: pointer;
+        }
+
+        .penalty-input:focus, .penalty-select:focus, .preset-num-input:focus, .preset-unit-select:focus {
             border-color: var(--pastel-red);
             outline: none;
             box-shadow: 0 0 6px var(--pastel-red-glow);
+        }
+
+        /* 確率入力欄 */
+        .prob-wrap {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            flex-shrink: 0;
+        }
+
+        .prob-input {
+            background: #1c1620;
+            border: 1px solid #4f3f5a;
+            color: #fff;
+            padding: 8px 4px;
+            border-radius: 10px;
+            font-size: 13px;
+            width: 52px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .prob-input:focus {
+            border-color: var(--pastel-red);
+            outline: none;
+            box-shadow: 0 0 6px var(--pastel-red-glow);
+        }
+
+        .prob-percent {
+            font-size: 12px;
+            color: #b8a8c0;
+            flex-shrink: 0;
         }
 
         .btn-delete {
@@ -441,7 +485,7 @@
             border: 1px solid rgba(255,255,255,0.06);
             border-radius: 14px;
             padding: 12px;
-            max-height: 300px;
+            max-height: 380px;
             overflow-y: auto;
             width: 100%;
             -webkit-overflow-scrolling: touch;
@@ -466,11 +510,64 @@
         .stats-item {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             padding: 6px 0;
             border-bottom: 1px dashed #4f3f5a;
             gap: 8px;
             flex-wrap: wrap;
         }
+
+        .cumulative-group-item {
+            border-bottom: 1px solid #4f3f5a;
+            padding: 8px 0;
+        }
+        .cumulative-main {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+        }
+
+        /* 手動調整フォームのスタイル */
+        .adjustment-panel {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 6px;
+            background: #1c1620;
+            padding: 6px;
+            border-radius: 8px;
+            width: 100%;
+        }
+        .adj-input {
+            background: #2a2032;
+            border: 1px solid #4f3f5a;
+            color: #fff;
+            padding: 4px;
+            border-radius: 6px;
+            font-size: 12px;
+            width: 50px;
+            text-align: center;
+        }
+        .adj-select {
+            background: #2a2032;
+            border: 1px solid #4f3f5a;
+            color: #fff;
+            padding: 4px;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+        }
+        .btn-adj {
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            border: none;
+        }
+        .btn-adj-plus { background-color: #3d5a45; color: var(--success-color); }
+        .btn-adj-minus { background-color: #5a3434; color: var(--danger-color); }
 
         .log-item {
             padding: 6px 0;
@@ -602,7 +699,7 @@
 <body>
 
 <div class="container">
-    <h1>💀 罰ゲームルーレット<br><span style="font-size: 0.8em; font-weight: normal;">(リセット機能付き)</span></h1>
+    <h1>💀 罰ゲームルーレット<br><span style="font-size: 0.8em; font-weight: normal;">(リセット・手動調整機能付き)</span></h1>
     
     <div class="tab-menu">
         <button class="tab-btn active" onclick="switchTab('main-tab', this)">メインルーレット</button>
@@ -621,11 +718,18 @@
                 <div class="control-panel">
                     <div class="setting-box">
                         <div class="setting-row">
-                            <span>🔄 リセット項目を混ぜる<br><small style="color: #b8a8c0;">（当選確率: 1枠分）</small></span>
+                            <span>🔄 リセット項目を混ぜる<br><small style="color: #b8a8c0;">確率は下で自由に設定できます</small></span>
                             <label class="switch">
-                                <input type="checkbox" id="resetToggle" checked onchange="saveToggleSetting(); syncRouletteWheel();">
+                                <input type="checkbox" id="resetToggle" checked onchange="saveToggleSetting(); syncRouletteWheel(); updateResetProbVisibility();">
                                 <span class="slider"></span>
                             </label>
+                        </div>
+                        <div class="setting-row" id="resetProbRow" style="margin-top:8px;">
+                            <span>リセットの確率</span>
+                            <div class="prob-wrap">
+                                <input type="number" id="resetProbInput" class="prob-input" min="0" step="0.1" value="5" oninput="saveResetProb(); syncRouletteWheel();">
+                                <span class="prob-percent">%</span>
+                            </div>
                         </div>
                     </div>
                     <button class="btn-start" id="btnStart" onclick="spinWheel()">ルーレットを回す！</button>
@@ -637,6 +741,7 @@
             <div class="inputs-panel">
                 <div class="inputs-header">
                     <span>📝 項目リスト (<span id="currentCount">0</span>/50)</span>
+                    <span id="totalProbDisplay" style="font-size:12px; color:#b8a8c0;">合計: 0%</span>
                 </div>
                 
                 <div class="input-scroll-area" id="inputContainer">
@@ -661,7 +766,7 @@
                 <div id="statsList" class="stats-list">まだ当選データがありません</div>
             </div>
             <div class="stats-box">
-                <h3>🧮 累計値</h3>
+                <h3>🧮 累計値 (手動足し引き調整可)</h3>
                 <div id="cumulativeList" class="stats-list">まだ累計データがありません</div>
             </div>
             <div class="stats-box">
@@ -706,7 +811,6 @@ const colors = ['#4a3a56', '#5a3f5e', '#3f3a52', '#4f3a4a', '#3a3a52', '#523f4f'
 
 // プリセット用データ定義
 const PRESET_OPTIONS = ['ご自愛', '禁煙', '禁酒', '〇〇を食べる'];
-const TIME_PRESETS = ['1時間', '2時間', '5時間', '10時間', '1日'];
 const COUNT_PRESETS = ['1個', '2個', '3個', '5個', '10個'];
 
 window.onload = function() {
@@ -741,8 +845,10 @@ function addField() {
         id: id, 
         mode: 'custom', 
         presetType: 'ご自愛', 
-        value: '', 
-        foodName: 'プリン' 
+        value: '', // 自由入力時は文字列、プリセット時は数値(文字列)として扱う
+        presetUnit: '時間', // 時間指定用の単位初期値
+        foodName: 'プリン',
+        prob: 10
     });
 
     renderFields();
@@ -766,7 +872,10 @@ function getItemText(item) {
         if (item.presetType === '〇〇を食べる') {
             return `${item.foodName || '〇〇'}を${item.value}食べる`;
         } else {
-            return `${item.presetType}${item.value}`;
+            // 自由指定された数値と単位を結合
+            const num = item.value || '1';
+            const unit = item.presetUnit || '時間';
+            return `${item.presetType}${num}${unit}`;
         }
     }
 }
@@ -813,7 +922,13 @@ function renderFields() {
             } else {
                 item.mode = 'preset';
                 item.presetType = val;
-                item.value = (val === '〇〇を食べる') ? COUNT_PRESETS[0] : TIME_PRESETS[0];
+                if(val === '〇〇を食べる') {
+                    item.value = COUNT_PRESETS[0];
+                } else {
+                    // 時間系の初期設定値
+                    item.value = '1'; 
+                    item.presetUnit = '時間';
+                }
             }
             renderFields();
             saveItems();
@@ -833,26 +948,80 @@ function renderFields() {
                 syncRouletteWheel();
             };
             topRow.appendChild(input);
-        } else {
+        } else if (item.presetType === '〇〇を食べる') {
+            // 個数選択
             const valueSelect = document.createElement('select');
             valueSelect.className = 'penalty-input';
-            const currentSubPresets = (item.presetType === '〇〇を食べる') ? COUNT_PRESETS : TIME_PRESETS;
-            
-            currentSubPresets.forEach(v => {
+            COUNT_PRESETS.forEach(v => {
                 const opt = document.createElement('option');
                 opt.value = v;
                 opt.innerText = v;
                 if(item.value === v) opt.selected = true;
                 valueSelect.appendChild(opt);
             });
-
             valueSelect.onchange = function(e) {
                 item.value = e.target.value;
                 saveItems();
                 syncRouletteWheel();
             };
             topRow.appendChild(valueSelect);
+        } else {
+            // 時間自由入力用 (数値入力 + 単位セレクト)
+            const numInput = document.createElement('input');
+            numInput.type = 'number';
+            numInput.className = 'preset-num-input';
+            numInput.min = '0';
+            numInput.step = 'any';
+            numInput.value = item.value || '1';
+            numInput.oninput = function(e) {
+                item.value = e.target.value;
+                saveItems();
+                syncRouletteWheel();
+            };
+
+            const unitSelect = document.createElement('select');
+            unitSelect.className = 'preset-unit-select';
+            ['時間', '日', '分'].forEach(u => {
+                const opt = document.createElement('option');
+                opt.value = u;
+                opt.innerText = u;
+                if((item.presetUnit || '時間') === u) opt.selected = true;
+                unitSelect.appendChild(opt);
+            });
+            unitSelect.onchange = function(e) {
+                item.presetUnit = e.target.value;
+                saveItems();
+                syncRouletteWheel();
+            };
+
+            topRow.appendChild(numInput);
+            topRow.appendChild(unitSelect);
         }
+
+        const probWrap = document.createElement('div');
+        probWrap.className = 'prob-wrap';
+
+        const probInput = document.createElement('input');
+        probInput.type = 'number';
+        probInput.className = 'prob-input';
+        probInput.min = '0';
+        probInput.step = '0.1';
+        probInput.value = (typeof item.prob === 'number') ? item.prob : 10;
+        probInput.oninput = function(e) {
+            let v = parseFloat(e.target.value);
+            if (isNaN(v) || v < 0) v = 0;
+            item.prob = v;
+            saveItems();
+            syncRouletteWheel();
+        };
+        probWrap.appendChild(probInput);
+
+        const probPercent = document.createElement('span');
+        probPercent.className = 'prob-percent';
+        probPercent.innerText = '%';
+        probWrap.appendChild(probPercent);
+
+        topRow.appendChild(probWrap);
 
         const btnDel = document.createElement('button');
         btnDel.className = 'btn-delete';
@@ -914,46 +1083,91 @@ function syncRouletteWheel() {
     
     itemsList.forEach((item) => {
         const val = getItemText(item).trim();
+        const w = parseFloat(item.prob);
+        const weight = (isNaN(w) || w < 0) ? 0 : w;
         if (val !== '') {
-            currentPool.push({ type: 'penalty', name: val, originId: item.id });
+            currentPool.push({ type: 'penalty', name: val, originId: item.id, weight: weight });
         } else {
-            currentPool.push({ type: 'miss', name: '❌ はずれ' });
+            currentPool.push({ type: 'miss', name: '❌ はずれ', weight: weight });
         }
     });
 
     if (currentPool.length === 0) {
-        currentPool.push({ type: 'miss', name: '❌ はずれ' });
+        currentPool.push({ type: 'miss', name: '❌ はずれ', weight: 1 });
     }
 
     const isResetAvailable = document.getElementById('resetToggle').checked;
     if (isResetAvailable) {
-        currentPool.push({ type: 'reset', name: '🔄 リセット発動！' });
+        const rw = parseFloat(document.getElementById('resetProbInput').value);
+        const resetWeight = (isNaN(rw) || rw < 0) ? 0 : rw;
+        currentPool.push({ type: 'reset', name: '🔄 リセット発動！', weight: resetWeight });
     }
 
+    updateTotalProbDisplay();
     drawWheel(currentAngle);
 }
 
+// 各セグメントの重み（確率）から実際の角度範囲を計算
+function computeSegments() {
+    const rawWeights = currentPool.map(seg => (typeof seg.weight === 'number' && seg.weight > 0) ? seg.weight : 0);
+    let totalWeight = rawWeights.reduce((a, b) => a + b, 0);
+    let weights = rawWeights;
+
+    // すべて0（未設定）の場合は均等割りにフォールバック
+    if (totalWeight <= 0) {
+        weights = currentPool.map(() => 1);
+        totalWeight = currentPool.length;
+    }
+
+    let cursor = 0;
+    return currentPool.map((seg, i) => {
+        const arc = (weights[i] / totalWeight) * 2 * Math.PI;
+        const segment = { ...seg, start: cursor, arc: arc };
+        cursor += arc;
+        return segment;
+    });
+}
+
+// 項目リストの確率合計を表示
+function updateTotalProbDisplay() {
+    const isResetAvailable = document.getElementById('resetToggle').checked;
+    let total = itemsList.reduce((sum, item) => {
+        const w = parseFloat(item.prob);
+        return sum + ((isNaN(w) || w < 0) ? 0 : w);
+    }, 0);
+    if (isResetAvailable) {
+        const rw = parseFloat(document.getElementById('resetProbInput').value);
+        total += (isNaN(rw) || rw < 0) ? 0 : rw;
+    }
+
+    const el = document.getElementById('totalProbDisplay');
+    const rounded = Math.round(total * 10) / 10;
+    el.innerText = `合計: ${rounded}%`;
+    el.style.color = Math.abs(total - 100) < 0.05 ? '#a8e6cf' : '#ffb4a2';
+}
+
 function drawWheel(angle) {
-    const numSegments = currentPool.length;
-    const arc = (2 * Math.PI) / numSegments;
+    const segments = computeSegments();
     const radius = canvas.width / 2;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    for (let i = 0; i < numSegments; i++) {
-        const segmentAngle = angle + (i * arc);
-        
+    segments.forEach((seg, i) => {
+        if (seg.arc <= 0.0005) return; 
+
+        const segmentAngle = angle + seg.start;
+
         ctx.beginPath();
-        if (currentPool[i].type === 'reset') {
+        if (seg.type === 'reset') {
             ctx.fillStyle = '#ffb4a2'; 
-        } else if (currentPool[i].type === 'miss') {
+        } else if (seg.type === 'miss') {
             ctx.fillStyle = '#3a2c44'; 
         } else {
             ctx.fillStyle = colors[i % colors.length];
         }
         
         ctx.moveTo(radius, radius);
-        ctx.arc(radius, radius, radius - 5, segmentAngle, segmentAngle + arc);
+        ctx.arc(radius, radius, radius - 5, segmentAngle, segmentAngle + seg.arc);
         ctx.lineTo(radius, radius);
         ctx.fill();
         
@@ -961,26 +1175,28 @@ function drawWheel(angle) {
         ctx.lineWidth = 1;
         ctx.stroke();
 
-        ctx.save();
-        if (currentPool[i].type === 'reset') {
-            ctx.fillStyle = '#3a1f2a';
-        } else if (currentPool[i].type === 'miss') {
-            ctx.fillStyle = '#8a7a96';
-        } else {
-            ctx.fillStyle = '#ffe3ea';
+        if (seg.arc > 0.12) {
+            ctx.save();
+            if (seg.type === 'reset') {
+                ctx.fillStyle = '#3a1f2a';
+            } else if (seg.type === 'miss') {
+                ctx.fillStyle = '#8a7a96';
+            } else {
+                ctx.fillStyle = '#ffe3ea';
+            }
+            
+            ctx.translate(radius, radius);
+            ctx.rotate(segmentAngle + seg.arc / 2);
+            ctx.font = 'bold 12px sans-serif';
+            ctx.textAlign = 'right';
+            
+            let text = seg.name;
+            if(text.length > 12) text = text.substring(0, 11) + '...';
+            
+            ctx.fillText(text, radius - 20, 5);
+            ctx.restore();
         }
-        
-        ctx.translate(radius, radius);
-        ctx.rotate(segmentAngle + arc / 2);
-        ctx.font = 'bold 12px sans-serif';
-        ctx.textAlign = 'right';
-        
-        let text = currentPool[i].name;
-        if(text.length > 12) text = text.substring(0, 11) + '...';
-        
-        ctx.fillText(text, radius - 20, 5);
-        ctx.restore();
-    }
+    });
 
     ctx.beginPath();
     ctx.arc(radius, radius, 15, 0, 2 * Math.PI);
@@ -1018,6 +1234,16 @@ function updateMultiSpinStatus() {
     }
 }
 
+function pickWeightedIndex(segments) {
+    const totalArc = segments.reduce((sum, seg) => sum + seg.arc, 0);
+    let r = Math.random() * totalArc;
+    for (let i = 0; i < segments.length; i++) {
+        if (r < segments[i].arc) return i;
+        r -= segments[i].arc;
+    }
+    return segments.length - 1;
+}
+
 function spinWheel() {
     if (isSpinning) return;
 
@@ -1025,11 +1251,15 @@ function spinWheel() {
     document.getElementById('btnStart').disabled = true;
     document.getElementById('btnStart10').disabled = true;
 
-    const numSegments = currentPool.length;
-    const targetIndex = Math.floor(Math.random() * numSegments);
-    const arc = (2 * Math.PI) / numSegments;
+    const segments = computeSegments();
+    const targetIndex = pickWeightedIndex(segments);
+    const seg = segments[targetIndex];
     
-    const targetAngle = -Math.PI / 2 - (targetIndex * arc) - (arc / 2);
+    const margin = seg.arc * 0.15;
+    const offsetInSegment = margin + Math.random() * (seg.arc - margin * 2 > 0 ? seg.arc - margin * 2 : seg.arc);
+    const targetLocalAngle = seg.start + offsetInSegment;
+
+    const targetAngle = -Math.PI / 2 - targetLocalAngle;
     const finalAngle = targetAngle - (Math.PI * 2 * 6); 
     
     let startTimestamp = null;
@@ -1106,16 +1336,20 @@ const TIME_UNIT_TO_HOURS = {
     '分': 1 / 60, 'm': 1 / 60, 'min': 1 / 60
 };
 
+// 表記ブレに対応して数値を抽出するロジック
 function parseAmount(text) {
     const normalized = text
         .replace(/[ｈＨ]/g, 'h')
         .replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
     
     const cleanText = normalized.replace('を食べる', '');
+    // 小数点「\d+(?:\.\d+)?」にも一致するように正規表現を維持
     const match = cleanText.match(/(\d+(?:\.\d+)?)\s*(時間|日|分|h|min|m|回|個|点|本|枚|杯|分間)/);
     if (!match) return null;
     const num = parseFloat(match[1]);
-    const unit = match[2];
+    let unit = match[2];
+    if(unit === '分間') unit = '分';
+    
     const isTime = Object.prototype.hasOwnProperty.call(TIME_UNIT_TO_HOURS, unit);
     
     let label = normalized.replace(match[0], '').replace('を食べる', '').trim();
@@ -1182,13 +1416,11 @@ function processResult(result) {
     }
 }
 
-// モーダルを開く
 function openResetModal() {
     const modal = document.getElementById('resetModal');
     modal.classList.add('active');
 }
 
-// リセット実行（ルーレットの「リセット」当選時）
 function executeReset() {
     cumulativeLogs = [];
     stats = {};
@@ -1200,7 +1432,6 @@ function executeReset() {
     advanceMultiSpin();
 }
 
-// 手動で累計をリセット（いつでも実行可能）
 function manualResetCumulative() {
     if (!confirm('累計当選数と累計値をすべてリセットします。よろしいですか？')) return;
 
@@ -1209,6 +1440,49 @@ function manualResetCumulative() {
     localStorage.setItem('canvasCumulativeLogs_v3', JSON.stringify(cumulativeLogs));
     localStorage.setItem('canvasRouletteStats_v3', JSON.stringify(stats));
     updateStatsDisplay();
+}
+
+// 手動調整を適用する関数
+function applyAdjustment(label, isPlus) {
+    const inputEl = document.getElementById(`adj-input-${label}`);
+    const unitEl = document.getElementById(`adj-unit-${label}`);
+    if (!inputEl || !unitEl) return;
+
+    const val = parseFloat(inputEl.value);
+    if (isNaN(val) || val <= 0) {
+        alert('1以上の有効な数値を入力してください。');
+        return;
+    }
+
+    const unit = unitEl.value;
+    const isTime = Object.prototype.hasOwnProperty.call(TIME_UNIT_TO_HOURS, unit);
+    const finalNum = isPlus ? val : -val;
+
+    const now = new Date();
+    const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+
+    // 履歴ログにも調整内容を残す
+    const logSign = isPlus ? '＋' : '－';
+    logs.unshift(`[${timeStr}] 🛠️ 手動調整: ${label} (${logSign}${val}${unit})`);
+    localStorage.setItem('canvasRouletteLogs_v3', JSON.stringify(logs));
+
+    // 累計データ配列に調整用レコードを挿入
+    cumulativeLogs.push({
+        id: Date.now() + Math.random(),
+        name: `手動調整 (${logSign}${val}${unit})`,
+        num: finalNum,
+        unit: unit,
+        isTime: isTime,
+        label: label,
+        timestamp: timeStr
+    });
+
+    localStorage.setItem('canvasCumulativeLogs_v3', JSON.stringify(cumulativeLogs));
+    updateStatsDisplay();
+    updateLogDisplay();
+    
+    // 入力欄をクリア
+    inputEl.value = '';
 }
 
 function saveItems() {
@@ -1220,10 +1494,24 @@ function saveToggleSetting() {
     localStorage.setItem('canvasResetToggle_v3', toggle);
 }
 
+function saveResetProb() {
+    const val = document.getElementById('resetProbInput').value;
+    localStorage.setItem('canvasResetProb_v3', val);
+}
+
+function updateResetProbVisibility() {
+    const isOn = document.getElementById('resetToggle').checked;
+    document.getElementById('resetProbRow').style.display = isOn ? 'flex' : 'none';
+}
+
 function loadSavedData() {
     const savedItems = localStorage.getItem('rouletteItemsList_v3');
     if (savedItems) {
-        itemsList = JSON.parse(savedItems);
+        itemsList = JSON.parse(savedItems).map(item => ({
+            ...item,
+            prob: (typeof item.prob === 'number' && !isNaN(item.prob)) ? item.prob : 10,
+            presetUnit: item.presetUnit || '時間'
+        }));
         renderFields();
     }
 
@@ -1231,6 +1519,12 @@ function loadSavedData() {
     if (savedToggle !== null) {
         document.getElementById('resetToggle').checked = savedToggle === 'true';
     }
+
+    const savedResetProb = localStorage.getItem('canvasResetProb_v3');
+    if (savedResetProb !== null) {
+        document.getElementById('resetProbInput').value = savedResetProb;
+    }
+    updateResetProbVisibility();
 
     const savedStats = localStorage.getItem('canvasRouletteStats_v3');
     if (savedStats) stats = JSON.parse(savedStats);
@@ -1276,28 +1570,72 @@ function updateStatsDisplay() {
         for (let label in groups) {
             const entries = groups[label];
 
+            // 時間系レコードの計算（手動のマイナス値もそのまま合算される）
             const timeEntries = entries.filter(l => l.isTime);
             const timeTotalHours = timeEntries.reduce((sum, l) => sum + l.num * TIME_UNIT_TO_HOURS[l.unit], 0);
 
+            // 時間系以外の集計
             const otherTotals = {};
             entries.filter(l => !l.isTime).forEach(l => {
                 otherTotals[l.unit] = (otherTotals[l.unit] || 0) + l.num;
             });
 
             let displayStr = '';
-            if (timeTotalHours > 0) {
+            if (timeEntries.length > 0) {
                 const totalDisplay = timeTotalHours % 1 === 0 ? timeTotalHours : timeTotalHours.toFixed(2);
-                displayStr = `合計${totalDisplay}時間`;
+                displayStr = `合計 ${totalDisplay} 時間`;
             }
-            const otherStrs = Object.entries(otherTotals).map(([unit, num]) => `合計${num}${unit}`);
+            const otherStrs = Object.entries(otherTotals).map(([unit, num]) => {
+                const numDisplay = num % 1 === 0 ? num : num.toFixed(2);
+                return `合計 ${numDisplay} ${unit}`;
+            });
             if (otherStrs.length > 0) {
                 displayStr = displayStr ? `${displayStr}、${otherStrs.join('、')}` : otherStrs.join('、');
             }
 
-            const item = document.createElement('div');
-            item.className = 'stats-item';
-            item.innerHTML = `<span>${label}</span><span>${displayStr}</span>`;
-            cumulativeContainer.appendChild(item);
+            // コンテナ生成
+            const groupWrap = document.createElement('div');
+            groupWrap.className = 'cumulative-group-item';
+
+            const mainRow = document.createElement('div');
+            mainRow.className = 'cumulative-main';
+            mainRow.innerHTML = `<span>${label}</span><span>${displayStr}</span>`;
+            groupWrap.appendChild(mainRow);
+
+            // 手動プラスマイナス調整用UIを動的配置
+            const adjPanel = document.createElement('div');
+            adjPanel.className = 'adjustment-panel';
+
+            const isTimeGroup = timeEntries.length > 0 || entries.some(e => Object.prototype.hasOwnProperty.call(TIME_UNIT_TO_HOURS, e.unit));
+            
+            let unitSelectHtml = '';
+            if (isTimeGroup) {
+                unitSelectHtml = `
+                    <select class="adj-select" id="adj-unit-${label}">
+                        <option value="時間">時間</option>
+                        <option value="日">日</option>
+                        <option value="分">分</option>
+                    </select>
+                `;
+            } else {
+                const firstNonTimeUnit = entries.find(l => !l.isTime)?.unit || '個';
+                unitSelectHtml = `
+                    <select class="adj-select" id="adj-unit-${label}">
+                        <option value="${firstNonTimeUnit}">${firstNonTimeUnit}</option>
+                    </select>
+                `;
+            }
+
+            adjPanel.innerHTML = `
+                <span style="font-size:11px; color:#b8a8c0; margin-right:2px;">調整:</span>
+                <input type="number" class="adj-input" id="adj-input-${label}" placeholder="数値" min="0" step="any">
+                ${unitSelectHtml}
+                <button class="btn-adj btn-adj-plus" onclick="applyAdjustment('${label}', true)">＋足す</button>
+                <button class="btn-adj btn-adj-minus" onclick="applyAdjustment('${label}', false)">－引く</button>
+            `;
+            groupWrap.appendChild(adjPanel);
+
+            cumulativeContainer.appendChild(groupWrap);
         }
     }
 }
